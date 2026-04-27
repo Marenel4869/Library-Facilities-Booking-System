@@ -2,6 +2,9 @@
 (function () {
   'use strict';
 
+  let bookedIntervals = [];
+  let availabilityWired = false;
+
   // ── Fill booking modal on open ─────────────────────────────────────────────
   const bookingModal = document.getElementById('bookingModal');
   if (bookingModal) {
@@ -59,7 +62,137 @@
 
       // Clear previous state
       clearModal();
+
+      wireAvailabilityOnce();
+      refreshAvailability();
     });
+  }
+
+  function wireAvailabilityOnce() {
+    if (availabilityWired) return;
+    availabilityWired = true;
+
+    const dateEl  = document.getElementById('bookingDate');
+    const startEl = document.getElementById('startTime');
+    const endEl   = document.getElementById('endTime');
+
+    if (!dateEl || !startEl || !endEl) return;
+
+    dateEl.addEventListener('change', function () {
+      refreshAvailability();
+    });
+    startEl.addEventListener('change', function () {
+      applyDisabledTimes();
+    });
+    endEl.addEventListener('change', function () {
+      applyDisabledTimes();
+    });
+  }
+
+  function refreshAvailability() {
+    const facilityId = (document.getElementById('modalFacilityId') || {}).value;
+    const dateStr    = (document.getElementById('bookingDate') || {}).value;
+
+    if (!facilityId || !dateStr) {
+      bookedIntervals = [];
+      applyDisabledTimes();
+      return;
+    }
+
+    const fd = new FormData();
+    fd.append('action', 'availability');
+    fd.append('facility_id', facilityId);
+    fd.append('booking_date', dateStr);
+
+    fetch(BASE_URL + '/student/ajax_book.php', { method: 'POST', body: fd })
+      .then(function (r) { return r.json(); })
+      .then(function (data) {
+        bookedIntervals = (data && data.success && Array.isArray(data.booked)) ? data.booked : [];
+        applyDisabledTimes();
+      })
+      .catch(function () {
+        bookedIntervals = [];
+        applyDisabledTimes();
+      });
+  }
+
+  function applyDisabledTimes() {
+    const startEl = document.getElementById('startTime');
+    const endEl   = document.getElementById('endTime');
+    if (!startEl || !endEl) return;
+
+    // 1) Disable START times that fall inside an existing booking
+    Array.from(startEl.options).forEach(function (opt) {
+      const s = toMin(opt.value);
+      opt.disabled = insideAny(s, bookedIntervals);
+    });
+
+    // Auto-fix if selected start is now disabled
+    if (startEl.selectedOptions[0] && startEl.selectedOptions[0].disabled) {
+      pickFirstEnabled(startEl);
+    }
+
+    // 2) Ensure END is after START (auto-advance end if needed)
+    const sNowMin = toMin(startEl.value);
+    if (toMin(endEl.value) <= sNowMin) {
+      pickFirstEnabledAfter(endEl, sNowMin);
+    }
+
+    // 3) Disable END times that would overlap an existing booking
+    Array.from(endEl.options).forEach(function (opt) {
+      const e = toMin(opt.value);
+      opt.disabled = (e <= sNowMin) || overlapsAny(sNowMin, e, bookedIntervals);
+    });
+
+    // Auto-fix if selected end is now disabled
+    if (endEl.selectedOptions[0] && endEl.selectedOptions[0].disabled) {
+      pickFirstEnabledAfter(endEl, sNowMin);
+    }
+
+    // If still overlapping, show a helpful message
+    const eNowMin = toMin(endEl.value);
+    if (sNowMin < eNowMin && overlapsAny(sNowMin, eNowMin, bookedIntervals)) {
+      showModalAlert('warning', 'That time is already booked. Please choose another time (unavailable times are disabled).');
+    }
+  }
+
+  function pickFirstEnabled(sel) {
+    const opt = Array.from(sel.options).find(function (o) { return !o.disabled; });
+    if (opt) sel.value = opt.value;
+  }
+
+  function pickFirstEnabledAfter(sel, minMinutes) {
+    const opt = Array.from(sel.options).find(function (o) {
+      return !o.disabled && toMin(o.value) > minMinutes;
+    });
+    if (opt) sel.value = opt.value;
+  }
+
+  function overlapsAny(sMin, eMin, intervals) {
+    for (let i = 0; i < intervals.length; i++) {
+      const b = intervals[i];
+      const bs = toMin(b.start);
+      const be = toMin(b.end);
+      if (!(eMin <= bs || sMin >= be)) return true;
+    }
+    return false;
+  }
+
+  function insideAny(tMin, intervals) {
+    for (let i = 0; i < intervals.length; i++) {
+      const b = intervals[i];
+      const bs = toMin(b.start);
+      const be = toMin(b.end);
+      if (tMin >= bs && tMin < be) return true;
+    }
+    return false;
+  }
+
+  function toMin(hm) {
+    const parts = String(hm || '').split(':');
+    const h = parseInt(parts[0] || '0', 10);
+    const m = parseInt(parts[1] || '0', 10);
+    return h * 60 + m;
   }
 
   // ── Submit booking via AJAX ────────────────────────────────────────────────
@@ -97,6 +230,12 @@
         return;
       }
 
+      // If our availability call already knows this overlaps, block early
+      if (overlapsAny(toMin(start), toMin(end), bookedIntervals)) {
+        showModalAlert('danger', 'That time is already booked. Please choose another time.');
+        return;
+      }
+
       // Show spinner
       setLoading(true);
       clearModal();
@@ -121,6 +260,7 @@
           }, 1400);
         } else {
           showModalAlert('danger', data.message || 'Something went wrong.');
+          refreshAvailability();
         }
       })
       .catch(function () {
@@ -129,6 +269,7 @@
       });
     });
   }
+
 
   // ── Cancel booking ─────────────────────────────────────────────────────────
   let cancelBookingId = null;

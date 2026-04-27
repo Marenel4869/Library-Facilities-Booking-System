@@ -10,6 +10,38 @@ if (!isset($_SESSION['user_id']) || $_SESSION['role'] !== 'faculty') {
 
 $uid = $_SESSION['user_id'];
 
+// ── Availability (for UI disabling of already-booked times) ───────────────────
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['action'] === 'availability') {
+    $fid  = (int)($_POST['facility_id'] ?? 0);
+    $date = trim($_POST['booking_date'] ?? '');
+
+    if (!$fid || !$date) {
+        echo json_encode(['success' => false, 'message' => 'Missing facility/date.']);
+        exit;
+    }
+
+    $stmt = $pdo->prepare(
+        'SELECT start_time, end_time
+           FROM bookings
+          WHERE facility_id = ?
+            AND booking_date = ?
+            AND status IN ("pending", "approved")
+          ORDER BY start_time'
+    );
+    $stmt->execute([$fid, $date]);
+
+    $booked = [];
+    foreach ($stmt->fetchAll() as $row) {
+        $booked[] = [
+            'start' => substr($row['start_time'], 0, 5),
+            'end'   => substr($row['end_time'],   0, 5),
+        ];
+    }
+
+    echo json_encode(['success' => true, 'booked' => $booked]);
+    exit;
+}
+
 // ── Cancel ────────────────────────────────────────────────────────────────────
 if (isset($_POST['action']) && $_POST['action'] === 'cancel') {
     $bid = (int)($_POST['booking_id'] ?? 0);
