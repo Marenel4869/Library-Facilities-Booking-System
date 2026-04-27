@@ -1,0 +1,555 @@
+/* =============================================
+   DASHBOARD — Facilities, Cards, Bookings
+   Blue / Purple / Yellow palette
+   ============================================= */
+
+/* ── Admin pages (eye-friendly) ────────────────── */
+.admin-page .card,
+.admin-dashboard .card { border-radius: 16px !important; }
+
+.admin-hero {
+  background: linear-gradient(135deg,#2563eb 0%,#7c3aed 100%);
+  border-radius: 16px;
+  padding: 1.15rem 1.4rem;
+  color: #fff;
+  box-shadow: 0 14px 34px rgba(37,99,235,.18);
+}
+.admin-hero-icon {
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  background: rgba(255,255,255,.14);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+.admin-hero-sub { color: rgba(255,255,255,.70); font-size: .82rem; }
+.admin-hero .btn { border-radius: 999px !important; }
+
+/* ── Admin dashboard (eye-friendly panels) ─────── */
+.admin-summary {
+  border: 1px solid #e8eeff !important;
+  background: linear-gradient(180deg, rgba(255,255,255,.92), rgba(255,255,255,1));
+}
+.admin-summary-title {
+  font-weight: 900;
+  letter-spacing: -.2px;
+  color: #0f172a;
+  font-size: 1.05rem;
+}
+.admin-summary-sub { font-size: .82rem; }
+
+.admin-metric {
+  display: flex;
+  gap: .85rem;
+  align-items: center;
+  padding: .9rem 1rem;
+  border-radius: 14px;
+  border: 1px solid #e8eeff;
+  background: rgba(255,255,255,.92);
+  transition: transform .15s ease, box-shadow .15s ease;
+}
+.admin-metric:hover { transform: translateY(-1px); box-shadow: 0 10px 24px rgba(37,99,235,.10); }
+.admin-metric-icon {
+  width: 44px;
+  height: 44px;
+  border-radius: 14px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.05rem;
+  flex-shrink: 0;
+  box-shadow: 0 10px 22px rgba(37,99,235,.08);
+}
+.admin-metric-label {
+  font-size: .72rem;
+  text-transform: uppercase;
+  letter-spacing: .6px;
+  color: #64748b;
+  font-weight: 800;
+}
+.admin-metric-value { font-size: 1.65rem; font-weight: 900; line-height: 1.1; color: #0f172a; }
+.admin-metric-sub { font-size: .82rem; }
+
+.admin-summary-cta {
+  border-radius: 999px !important;
+  padding: .55rem 1.25rem !important;
+}
+
+.admin-panel .card-header {
+  border-bottom: 1px solid #eef2ff;
+  background: rgba(255,255,255,.85);
+  padding: .85rem 1rem;
+}
+.admin-panel-icon {
+  width: 34px;
+  height: 34px;
+  border-radius: 12px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+/* Keep admin table actions (Edit/Toggle/Delete) on one line */
+.admin-actions {
+  display: inline-flex;
+  align-items: center;
+  gap: .35rem;
+  flex-wrap: nowrap;
+  white-space: nowrap;
+}
+.admin-actions form { margin: 0; }
+.admin-actions .btn { white-space: nowrap; }
+
+.admin-timeline .list-group-item { position: relative; }
+.admin-timeline .list-group-item::before {
+  content: '';
+  position: absolute;
+  left: 16px;
+  top: 0;
+  bottom: 0;
+  width: 2px;
+  background: rgba(37,99,235,.10);
+}
+.admin-timeline .list-group-item::after {
+  content: '';
+  position: absolute;
+  left: 11px;
+  top: 18px;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #2563eb, #7c3aed);
+  box-shadow: 0 0 0 4px rgba(37,99,235,.10);
+}
+.admin-timeline .list-group-item > * { padding-left: 24px; }
+
+/* ── Section Labels ───────────────────────────── */
+.section-label {
+  display: flex;
+  align-items: center;
+  gap: .6rem;
+  padding-bottom: .65rem;
+  border-bottom: 2px solid #e8eeff;
+  font-size: clamp(.9rem, 2vw, 1rem);
+  margin-bottom: 1.25rem !important;
+}
+.section-label .badge {
+  font-size: .78rem !important;
+  padding: .4em .8em !important;
+  border-radius: 8px !important;
+}
+
+/* ── Facility Cards ───────────────────────────── */
+.facility-card {
+  transition: transform .2s ease, box-shadow .2s ease;
+  border-radius: 14px !important;
+  height: 100%;
+  border: 1.5px solid #e8eeff !important;
+  position: relative;
+  overflow: hidden;
+}
+.facility-card::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 3px;
+  background: linear-gradient(90deg, #2563eb, #7c3aed);
+}
+.facility-card.facility-request::before {
+  background: linear-gradient(90deg, #d97706, #f59e0b);
+}
+.facility-card.facility-morelos::before {
+  background: linear-gradient(90deg, #7c3aed, #4f46e5);
+}
+.facility-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 12px 32px rgba(37,99,235,.14) !important;
+  border-color: #bfdbfe !important;
+}
+.facility-card .card-img-top {
+  transition: transform .35s ease;
+}
+.facility-card:hover .card-img-top {
+  transform: scale(1.04);
+}
+
+/* ── Facility Grid (fills empty spaces) ───────── */
+.facility-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: .65rem;
+}
+.facility-grid-item { min-width: 0; }
+
+/* Desktop column control (Student Dashboard) */
+@media (min-width: 992px) {
+  .facility-grid.facility-grid-1 { grid-template-columns: 1fr; }
+  .facility-grid.facility-grid-2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .facility-grid.facility-grid-3 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+}
+
+/* Compact, clean facility cards inside grids (Student Dashboard) */
+.facility-grid .facility-card {
+  min-height: 430px;
+}
+.facility-grid .facility-card .card-img-top {
+  height: 150px !important; /* overrides inline height */
+  object-fit: cover;
+}
+.facility-grid .facility-card .card-body { padding: .65rem .7rem !important; }
+.facility-grid .facility-card .card-footer { padding: 0 .7rem .75rem !important; }
+
+.facility-grid .facility-card .card-title {
+  font-size: .92rem;
+  line-height: 1.15;
+  margin-bottom: .15rem !important;
+}
+.facility-grid .facility-card p.text-muted.small {
+  font-size: .74rem;
+  margin-bottom: .3rem !important;
+}
+.facility-grid .facility-meta {
+  font-size: .74rem;
+  gap: 2px;
+  margin-bottom: .25rem;
+}
+
+.facility-grid .facility-icon {
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  font-size: 1rem;
+}
+
+.facility-grid .badge {
+  font-size: .66rem !important;
+  padding: .22rem .45rem !important;
+}
+
+.facility-grid .btn-book {
+  padding: .45rem .6rem;
+  font-size: .82rem;
+  border-radius: 10px;
+}
+
+/* Softer hover in dense grids */
+.facility-grid .facility-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 24px rgba(37,99,235,.12) !important;
+}
+
+/* Slightly more polished schedule card background */
+.schedule-card {
+  background: linear-gradient(135deg, rgba(37,99,235,.045), rgba(124,58,237,.035));
+}
+
+/* ── Dashboard side cards ─────────────────────── */
+.side-stack { display: flex; flex-direction: column; gap: .85rem; }
+
+.info-list {
+  margin: 0;
+  padding-left: 1.1rem;
+  color: #475569;
+  font-size: .86rem;
+}
+.info-list li { margin: .35rem 0; }
+
+.announcement-item {
+  padding: .65rem .75rem;
+  border-radius: 12px;
+  border: 1px solid #e8eeff;
+  background: rgba(255,255,255,.86);
+}
+.announcement-item .title { font-weight: 800; color: #0f172a; font-size: .9rem; }
+.announcement-item .meta { color: #64748b; font-size: .74rem; }
+.announcement-item .body { color: #334155; font-size: .84rem; margin: .35rem 0 0 0; }
+
+.help-mini {
+  color: #475569;
+  font-size: .86rem;
+  line-height: 1.35;
+}
+.help-mini a { text-decoration: none; }
+.help-mini a:hover { text-decoration: underline; }
+
+@media (max-width: 576px) {
+  .facility-grid { grid-template-columns: 1fr; }
+}
+
+/* ── Facility Icon Badge ──────────────────────── */
+.facility-icon {
+  width: 46px; height: 46px;
+  border-radius: 12px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 1.2rem;
+  flex-shrink: 0;
+}
+.facility-icon.instant             { background: #dbeafe; color: #2563eb; }
+.facility-icon.request             { background: #fef3c7; color: #d97706; }
+.facility-icon-cl                  { background: #dbeafe; color: #2563eb;
+                                     width:46px;height:46px;border-radius:12px;
+                                     display:flex;align-items:center;justify-content:center;font-size:1.2rem; }
+.facility-icon-morelos             { background: #ede9fe; color: #7c3aed;
+                                     width:46px;height:46px;border-radius:12px;
+                                     display:flex;align-items:center;justify-content:center;font-size:1.2rem; }
+
+/* ── Facility Meta ────────────────────────────── */
+.facility-meta {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  font-size: .83rem;
+  color: #64748b;
+  margin-bottom: .5rem;
+}
+.facility-meta span { display: flex; align-items: center; gap: .3rem; }
+
+/* ── Booking Info Chips ───────────────────────── */
+.booking-info-row { display: flex; gap: .75rem; flex-wrap: wrap; }
+.booking-info-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: .35rem;
+  font-size: .8rem;
+  background: #eff6ff;
+  border: 1px solid #bfdbfe;
+  border-radius: 100px;
+  padding: .25rem .8rem;
+  color: #2563eb;
+  font-weight: 500;
+}
+
+/* ── Library Schedule Card ────────────────────── */
+.library-schedule-card {
+  border: 1.5px solid #e8eeff;
+  border-radius: 14px;
+  padding: 1rem 1.1rem;
+  background: linear-gradient(135deg, rgba(37,99,235,.06), rgba(124,58,237,.05));
+  position: relative;
+  overflow: hidden;
+}
+
+@media (min-width: 992px) {
+  .schedule-sticky {
+    position: sticky;
+    top: calc(var(--topbar-h) + 1rem);
+  }
+}
+
+.library-schedule-card::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 3px;
+  background: linear-gradient(90deg, #2563eb, #7c3aed);
+}
+.library-schedule-card .schedule-icon {
+  width: 42px;
+  height: 42px;
+  border-radius: 12px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: #dbeafe;
+  color: #2563eb;
+  box-shadow: 0 10px 22px rgba(37,99,235,.08);
+}
+.library-schedule-card .schedule-title {
+  font-weight: 900;
+  letter-spacing: .2px;
+  color: #0f172a;
+  line-height: 1.15;
+}
+.library-schedule-card .schedule-subtitle {
+  font-size: .82rem;
+  color: #64748b;
+}
+.library-schedule-card .schedule-rows {
+  display: grid;
+  gap: .55rem;
+  margin-top: .75rem;
+}
+.library-schedule-card .schedule-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: .75rem;
+  padding: .55rem .75rem;
+  border-radius: 12px;
+  background: rgba(255,255,255,.85);
+  border: 1px solid #e8eeff;
+}
+.library-schedule-card .schedule-row .day {
+  font-weight: 650;
+  color: #334155;
+}
+.library-schedule-card .schedule-row .time {
+  font-weight: 800;
+  color: #0f172a;
+  white-space: nowrap;
+}
+.library-schedule-card .schedule-badge {
+  border-radius: 999px;
+  padding: .4rem .7rem;
+  font-weight: 800;
+  letter-spacing: .2px;
+}
+.library-schedule-card .schedule-badge-student {
+  background: #eff6ff;
+  color: #1d4ed8;
+  border: 1px solid #bfdbfe;
+}
+.library-schedule-card .schedule-badge-faculty {
+  background: #ede9fe;
+  color: #6d28d9;
+  border: 1px solid #ddd6fe;
+}
+
+.library-schedule-card .schedule-reminder {
+  font-size: .86rem;
+  color: #92400e;
+  background: #fffbeb;
+  border: 1px solid #fde68a;
+  border-radius: 12px;
+  padding: .65rem .8rem;
+  line-height: 1.35;
+}
+
+.library-schedule-card .schedule-row.closed {
+  background: #fff1f2;
+  border-color: #fecdd3;
+}
+
+.library-schedule-card .schedule-row.closed .time {
+  color: #9f1239;
+}
+
+@media (max-width: 576px) {
+  .library-schedule-card .schedule-row {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  .library-schedule-card .schedule-row .time {
+    white-space: normal;
+  }
+}
+
+/* ── Schedule card (facility-style) ───────────── */
+.schedule-card .card-body { padding: 1.15rem 1.15rem !important; }
+.schedule-card .card-title { font-size: 1.15rem; }
+.schedule-card .facility-icon { width: 54px; height: 54px; font-size: 1.25rem; }
+
+.schedule-card .schedule-reminder {
+  font-size: .86rem;
+  color: #92400e;
+  background: #fffbeb;
+  border: 1px solid #fde68a;
+  border-radius: 12px;
+  padding: .65rem .8rem;
+  line-height: 1.35;
+}
+
+.schedule-card .schedule-mini {
+  display: flex;
+  flex-direction: column;
+  gap: .55rem;
+}
+.schedule-card .schedule-mini-row {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: .75rem;
+  padding: .62rem .75rem;
+  border-radius: 12px;
+  background: rgba(255,255,255,.85);
+  border: 1px solid #e8eeff;
+  font-size: .9rem;
+  color: #334155;
+}
+.schedule-card .schedule-mini-row strong {
+  font-weight: 900;
+  color: #0f172a;
+  white-space: nowrap;
+}
+.schedule-card .schedule-mini-row.closed {
+  background: #fff1f2;
+  border-color: #fecdd3;
+}
+.schedule-card .schedule-mini-row.closed strong {
+  color: #9f1239;
+}
+
+@media (max-width: 576px) {
+  .schedule-card .schedule-mini-row {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  .schedule-card .schedule-mini-row strong {
+    white-space: normal;
+  }
+}
+
+/* ── Booking Table ────────────────────────────── */
+.table > thead > tr > th {
+  font-size: .75rem;
+  text-transform: uppercase;
+  letter-spacing: .6px;
+  white-space: nowrap;
+  font-weight: 700;
+}
+
+/* Status badges */
+.status-pending  { background: #fef3c7; color: #92400e; border: 1px solid #fcd34d; }
+.status-approved { background: #d1fae5; color: #065f46; border: 1px solid #6ee7b7; }
+.status-rejected { background: #fee2e2; color: #991b1b; border: 1px solid #fca5a5; }
+.status-cancelled{ background: #f1f5f9; color: #475569; border: 1px solid #cbd5e1; }
+
+/* ── Page Heading accent ──────────────────────── */
+.page-heading {
+  display: flex;
+  align-items: center;
+  gap: .75rem;
+  margin-bottom: 1.5rem;
+}
+.page-heading .heading-icon {
+  width: 44px; height: 44px;
+  border-radius: 12px;
+  background: linear-gradient(135deg, #2563eb, #7c3aed);
+  display: flex; align-items: center; justify-content: center;
+  color: #fff;
+  font-size: 1.1rem;
+  flex-shrink: 0;
+  box-shadow: 0 4px 12px rgba(124,58,237,.3);
+}
+.page-heading h4 { margin: 0; font-weight: 800; color: #0f172a; }
+
+/* ── Tablet: 769px – 1024px ───────────────────── */
+@media (max-width: 1024px) {
+  .facility-icon, .facility-icon-cl, .facility-icon-morelos { width: 40px; height: 40px; font-size: 1.05rem; }
+}
+
+/* ── Mobile: ≤ 768px ─────────────────────────── */
+@media (max-width: 768px) {
+  .stat-card { padding: .85rem .75rem; }
+  .stat-card .value { font-size: 1.5rem; }
+  .stat-card .label { font-size: .7rem; }
+  .facility-card .card-body { padding: .85rem !important; }
+  .section-label { font-size: .9rem; }
+  .booking-info-chip { font-size: .75rem; padding: .2rem .6rem; }
+  .table > thead > tr > th { font-size: .68rem; padding: .4rem .5rem; }
+  .table > tbody > tr > td { font-size: .82rem; padding: .4rem .5rem; }
+  .modal-dialog { margin: .5rem; }
+  .modal-dialog.modal-lg { max-width: calc(100vw - 1rem); }
+}
+
+/* ── Small phones: ≤ 480px ───────────────────── */
+@media (max-width: 480px) {
+  .stat-card { padding: .7rem .6rem; }
+  .stat-card .value { font-size: 1.3rem; }
+  .facility-card .btn { width: 100%; margin-bottom: .25rem; }
+  .booking-info-chip { font-size: .72rem; }
+  h4.fw-bold { font-size: 1.1rem; }
+}
