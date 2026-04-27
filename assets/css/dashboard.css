@@ -92,6 +92,21 @@
   flex-shrink: 0;
 }
 
+/* Scroll containers for dashboard widgets (Pending Approvals / Recent Activity) */
+.admin-scroll {
+  max-height: 380px;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+}
+@media (min-width: 992px) {
+  .admin-scroll { max-height: 460px; }
+}
+.admin-scroll .table thead th {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+}
+
 /* Keep admin table actions (Edit/Toggle/Delete) on one line */
 .admin-actions {
   display: inline-flex;
@@ -170,10 +185,12 @@
   border-color: #bfdbfe !important;
 }
 .facility-card .card-img-top {
-  transition: transform .35s ease;
-}
-.facility-card:hover .card-img-top {
-  transform: scale(1.04);
+  display: block;
+  width: 100%;
+  object-fit: cover;
+  object-position: center;
+  image-rendering: auto;
+  image-rendering: -webkit-optimize-contrast;
 }
 
 /* ── Facility Grid (fills empty spaces) ───────── */

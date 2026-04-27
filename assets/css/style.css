@@ -151,6 +151,12 @@ img, video, svg { max-width: 100%; height: auto; }
 .stat-green { border-left-color: var(--green);  }
 .stat-green  .stat-icon{ background: var(--green-light);  color: var(--green);  }
 .stat-green  .value    { color: var(--green); }
+.stat-red { border-left-color: var(--red); }
+.stat-red .stat-icon { background: var(--red-light); color: var(--red); }
+.stat-red .value { color: var(--red); }
+.stat-slate { border-left-color: #64748b; }
+.stat-slate .stat-icon { background: #f1f5f9; color: #64748b; }
+.stat-slate .value { color: #64748b; }
 
 /* ── Tables ──────────────────────────────────── */
 .table-responsive { overflow-x: auto; -webkit-overflow-scrolling: touch; }

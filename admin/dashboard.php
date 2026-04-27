@@ -77,6 +77,37 @@ require_once __DIR__ . '/../includes/navbar.php';
       </div>
     </div>
 
+    <div class="row g-3 mt-3">
+      <div class="col-6 col-md-3">
+        <div class="stat-card stat-yellow" style="margin-top:0">
+          <div class="stat-icon"><i class="fas fa-clock"></i></div>
+          <div class="label">Pending</div>
+          <div class="value"><?= (int)$counts['pending'] ?></div>
+        </div>
+      </div>
+      <div class="col-6 col-md-3">
+        <div class="stat-card stat-green" style="margin-top:0">
+          <div class="stat-icon"><i class="fas fa-check-circle"></i></div>
+          <div class="label">Approved</div>
+          <div class="value"><?= (int)$counts['approved'] ?></div>
+        </div>
+      </div>
+      <div class="col-6 col-md-3">
+        <div class="stat-card stat-red" style="margin-top:0">
+          <div class="stat-icon"><i class="fas fa-times-circle"></i></div>
+          <div class="label">Rejected</div>
+          <div class="value"><?= (int)$counts['rejected'] ?></div>
+        </div>
+      </div>
+      <div class="col-6 col-md-3">
+        <div class="stat-card stat-slate" style="margin-top:0">
+          <div class="stat-icon"><i class="fas fa-ban"></i></div>
+          <div class="label">Cancelled</div>
+          <div class="value"><?= (int)$counts['cancelled'] ?></div>
+        </div>
+      </div>
+    </div>
+
     <div class="text-center mt-3">
       <a class="btn btn-primary btn-sm admin-summary-cta" href="<?= BASE_URL ?>/admin/manage_bookings.php?status=pending">
         <i class="fas fa-clipboard-check me-1"></i>View Pending Approvals
@@ -103,6 +134,7 @@ require_once __DIR__ . '/../includes/navbar.php';
         <?php if (empty($pending)): ?>
           <p class="text-center text-muted py-4"><i class="fas fa-check-circle fa-2x mb-2 d-block opacity-25"></i>No pending bookings.</p>
         <?php else: ?>
+        <div class="admin-scroll">
         <div class="table-responsive">
           <table class="table table-hover mb-0">
             <thead><tr><th>#</th><th>User</th><th>Facility</th><th>Date</th><th></th></tr></thead>
@@ -118,6 +150,7 @@ require_once __DIR__ . '/../includes/navbar.php';
             <?php endforeach; ?>
             </tbody>
           </table>
+        </div>
         </div>
         <?php endif; ?>
       </div>
@@ -138,6 +171,7 @@ require_once __DIR__ . '/../includes/navbar.php';
         <?php if (empty($recentLogs)): ?>
           <p class="text-center text-muted py-4">No activity yet.</p>
         <?php else: ?>
+        <div class="admin-scroll">
         <ul class="list-group list-group-flush admin-timeline">
           <?php foreach ($recentLogs as $log): ?>
           <li class="list-group-item px-3 py-3">
@@ -158,42 +192,12 @@ require_once __DIR__ . '/../includes/navbar.php';
           </li>
           <?php endforeach; ?>
         </ul>
+        </div>
         <?php endif; ?>
       </div>
     </div>
   </div>
 </div>
 
-<!-- Mini stats (clean, low-contrast) -->
-<div class="row g-3 mt-1">
-  <div class="col-6 col-md-3">
-    <div class="stat-card stat-yellow" style="margin-top:0">
-      <div class="stat-icon"><i class="fas fa-clock"></i></div>
-      <div class="label">Pending</div>
-      <div class="value"><?= (int)$counts['pending'] ?></div>
-    </div>
-  </div>
-  <div class="col-6 col-md-3">
-    <div class="stat-card stat-green" style="margin-top:0">
-      <div class="stat-icon"><i class="fas fa-check-circle"></i></div>
-      <div class="label">Approved</div>
-      <div class="value"><?= (int)$counts['approved'] ?></div>
-    </div>
-  </div>
-  <div class="col-6 col-md-3">
-    <div class="stat-card" style="border-left-color:#dc2626;margin-top:0">
-      <div class="stat-icon" style="background:#fee2e2;color:#dc2626"><i class="fas fa-times-circle"></i></div>
-      <div class="label">Rejected</div>
-      <div class="value" style="color:#dc2626"><?= (int)$counts['rejected'] ?></div>
-    </div>
-  </div>
-  <div class="col-6 col-md-3">
-    <div class="stat-card" style="border-left-color:#64748b;margin-top:0">
-      <div class="stat-icon" style="background:#f1f5f9;color:#64748b"><i class="fas fa-ban"></i></div>
-      <div class="label">Cancelled</div>
-      <div class="value" style="color:#64748b"><?= (int)$counts['cancelled'] ?></div>
-    </div>
-  </div>
-</div>
 
 <?php require_once __DIR__ . '/../includes/footer.php'; ?>
