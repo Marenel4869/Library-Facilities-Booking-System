@@ -7,15 +7,85 @@
   let availabilityWired = false;
   let syncingSlots = false;
 
+  function hasBootstrapModal() {
+    return !!(window.bootstrap && bootstrap.Modal);
+  }
+
+  function showModalById(id) {
+    const el = document.getElementById(id);
+    if (!el) return;
+    if (hasBootstrapModal()) {
+      bootstrap.Modal.getOrCreateInstance(el).show();
+    } else {
+      fallbackShowModal(el);
+    }
+  }
+
+  function hideModalById(id) {
+    const el = document.getElementById(id);
+    if (!el) return;
+    if (hasBootstrapModal()) {
+      const inst = bootstrap.Modal.getInstance(el);
+      if (inst) inst.hide();
+    } else {
+      fallbackHideModal(el);
+    }
+  }
+
+  function fallbackWireModal(el) {
+    if (el.dataset.fallbackWired === '1') return;
+    el.dataset.fallbackWired = '1';
+
+    el.addEventListener('click', function (e) {
+      if (e.target === el) fallbackHideModal(el);
+    });
+
+    el.querySelectorAll('[data-bs-dismiss="modal"]').forEach(function (btn) {
+      btn.addEventListener('click', function () {
+        fallbackHideModal(el);
+      });
+    });
+  }
+
+  function fallbackShowModal(el) {
+    fallbackWireModal(el);
+
+    if (!el.__fallbackBackdrop) {
+      const bd = document.createElement('div');
+      bd.className = 'modal-backdrop fade show';
+      bd.addEventListener('click', function () { fallbackHideModal(el); });
+      document.body.appendChild(bd);
+      el.__fallbackBackdrop = bd;
+    }
+
+    el.style.display = 'block';
+    el.classList.add('show');
+    el.setAttribute('aria-modal', 'true');
+    el.removeAttribute('aria-hidden');
+    document.body.classList.add('modal-open');
+  }
+
+  function fallbackHideModal(el) {
+    el.classList.remove('show');
+    el.style.display = 'none';
+    el.setAttribute('aria-hidden', 'true');
+    document.body.classList.remove('modal-open');
+
+    if (el.__fallbackBackdrop) {
+      el.__fallbackBackdrop.remove();
+      el.__fallbackBackdrop = null;
+    }
+  }
+
   // ── Open modal ──────────────────────────────────────────────────────────────
   document.querySelectorAll('.btn-open-modal').forEach(function (btn) {
     btn.addEventListener('click', function () {
       try { currentFac = JSON.parse(btn.dataset.fac); } catch(e) { return; }
       resetModal();
       populateModal(currentFac);
+      showModalById('bookingModal');
       wireAvailabilityOnce();
       refreshAvailability();
-      bootstrap.Modal.getOrCreateInstance(document.getElementById('bookingModal')).show();
     });
   });
 
@@ -398,7 +468,7 @@
         if (data.success) {
           showAlert('success', data.message);
           setTimeout(function () {
-            bootstrap.Modal.getInstance(document.getElementById('bookingModal')).hide();
+            hideModalById('bookingModal');
             window.location.href = BASE_URL + '/faculty/dashboard.php#my-bookings';
           }, 1400);
         } else {
@@ -417,7 +487,7 @@
     btn.addEventListener('click', function () {
       cancelId = btn.dataset.id;
       document.getElementById('cancelName').textContent = btn.dataset.name;
-      bootstrap.Modal.getOrCreateInstance(document.getElementById('cancelModal')).show();
+      showModalById('cancelModal');
     });
   });
 

@@ -5,66 +5,153 @@
   let bookedIntervals = [];
   let availabilityWired = false;
 
+  function hasBootstrapModal() {
+    return !!(window.bootstrap && bootstrap.Modal);
+  }
+
+  function showModalById(id) {
+    const el = document.getElementById(id);
+    if (!el) return;
+    if (hasBootstrapModal()) {
+      bootstrap.Modal.getOrCreateInstance(el).show();
+    } else {
+      fallbackShowModal(el);
+    }
+  }
+
+  function hideModalById(id) {
+    const el = document.getElementById(id);
+    if (!el) return;
+    if (hasBootstrapModal()) {
+      const inst = bootstrap.Modal.getInstance(el);
+      if (inst) inst.hide();
+    } else {
+      fallbackHideModal(el);
+    }
+  }
+
+  function fallbackWireModal(el) {
+    if (el.dataset.fallbackWired === '1') return;
+    el.dataset.fallbackWired = '1';
+
+    // Close when clicking the modal backdrop area
+    el.addEventListener('click', function (e) {
+      if (e.target === el) fallbackHideModal(el);
+    });
+
+    // Close buttons
+    el.querySelectorAll('[data-bs-dismiss="modal"]').forEach(function (btn) {
+      btn.addEventListener('click', function () {
+        fallbackHideModal(el);
+      });
+    });
+  }
+
+  function fallbackShowModal(el) {
+    fallbackWireModal(el);
+
+    // Backdrop
+    if (!el.__fallbackBackdrop) {
+      const bd = document.createElement('div');
+      bd.className = 'modal-backdrop fade show';
+      bd.addEventListener('click', function () { fallbackHideModal(el); });
+      document.body.appendChild(bd);
+      el.__fallbackBackdrop = bd;
+    }
+
+    el.style.display = 'block';
+    el.classList.add('show');
+    el.setAttribute('aria-modal', 'true');
+    el.removeAttribute('aria-hidden');
+    document.body.classList.add('modal-open');
+  }
+
+  function fallbackHideModal(el) {
+    el.classList.remove('show');
+    el.style.display = 'none';
+    el.setAttribute('aria-hidden', 'true');
+    document.body.classList.remove('modal-open');
+
+    if (el.__fallbackBackdrop) {
+      el.__fallbackBackdrop.remove();
+      el.__fallbackBackdrop = null;
+    }
+  }
+
+  function fillBookingModalFromButton(btn) {
+    if (!btn) return;
+
+    const facilityId   = btn.dataset.facilityId;
+    const facilityName = btn.dataset.facilityName;
+    const capacity     = parseInt(btn.dataset.capacity, 10);
+    const isInstant    = btn.dataset.instant === '1';
+    const needsLetter  = btn.dataset.requiresLetter === '1';
+
+    // Fill hidden + labels
+    document.getElementById('modalFacilityId').value = facilityId;
+    document.getElementById('bookingModalLabel').textContent =
+      (isInstant ? '⚡ Book — ' : '📋 Request — ') + facilityName;
+    document.getElementById('modalSubtitle').textContent =
+      isInstant ? 'Instant booking · confirmed immediately' : 'Admin approval required';
+
+    // Info chips
+    document.getElementById('modalInfoRow').innerHTML =
+      '<span class="booking-info-chip"><i class="fas fa-users"></i>Max ' + capacity + ' people</span>' +
+      '<span class="booking-info-chip"><i class="fas fa-clock"></i>8:00 AM – 6:00 PM</span>';
+
+    // Capacity
+    document.getElementById('attendeesCount').max = capacity;
+    document.getElementById('attendeesCount').value = 1;
+    document.getElementById('capacityNote').textContent = '(max ' + capacity + ')';
+
+    // Letter upload
+    const letterGroup = document.getElementById('letterUploadGroup');
+    const letterInput = document.getElementById('requestLetter');
+    if (needsLetter) {
+      letterGroup.style.display = '';
+      letterInput.required = true;
+    } else {
+      letterGroup.style.display = 'none';
+      letterInput.required = false;
+      letterInput.value = '';
+    }
+
+    // Notices
+    document.getElementById('instantNotice').classList.toggle('d-none', !isInstant);
+    document.getElementById('requestNotice').classList.toggle('d-none',  isInstant);
+
+    // Style submit button
+    const submitBtn = document.getElementById('submitBooking');
+    submitBtn.className = isInstant
+      ? 'btn btn-success'
+      : 'btn btn-warning';
+    document.getElementById('submitText').innerHTML = isInstant
+      ? '<i class="fas fa-bolt me-1"></i>Confirm Booking'
+      : '<i class="fas fa-paper-plane me-1"></i>Submit Request';
+
+    // Clear previous state
+    clearModal();
+
+    wireAvailabilityOnce();
+    refreshAvailability();
+  }
+
   // ── Fill booking modal on open ─────────────────────────────────────────────
   const bookingModal = document.getElementById('bookingModal');
   if (bookingModal) {
+    // Normal path: Bootstrap modal event
     bookingModal.addEventListener('show.bs.modal', function (event) {
-      const btn = event.relatedTarget;
-      if (!btn) return;
+      fillBookingModalFromButton(event.relatedTarget);
+    });
 
-      const facilityId   = btn.dataset.facilityId;
-      const facilityName = btn.dataset.facilityName;
-      const capacity     = parseInt(btn.dataset.capacity, 10);
-      const isInstant    = btn.dataset.instant === '1';
-      const needsLetter  = btn.dataset.requiresLetter === '1';
-
-      // Fill hidden + labels
-      document.getElementById('modalFacilityId').value = facilityId;
-      document.getElementById('bookingModalLabel').textContent =
-        (isInstant ? '⚡ Book — ' : '📋 Request — ') + facilityName;
-      document.getElementById('modalSubtitle').textContent =
-        isInstant ? 'Instant booking · confirmed immediately' : 'Admin approval required';
-
-      // Info chips
-      document.getElementById('modalInfoRow').innerHTML =
-        '<span class="booking-info-chip"><i class="fas fa-users"></i>Max ' + capacity + ' people</span>' +
-        '<span class="booking-info-chip"><i class="fas fa-clock"></i>8:00 AM – 6:00 PM</span>';
-
-      // Capacity
-      document.getElementById('attendeesCount').max = capacity;
-      document.getElementById('attendeesCount').value = 1;
-      document.getElementById('capacityNote').textContent = '(max ' + capacity + ')';
-
-      // Letter upload
-      const letterGroup = document.getElementById('letterUploadGroup');
-      const letterInput = document.getElementById('requestLetter');
-      if (needsLetter) {
-        letterGroup.style.display = '';
-        letterInput.required = true;
-      } else {
-        letterGroup.style.display = 'none';
-        letterInput.required = false;
-        letterInput.value = '';
-      }
-
-      // Notices
-      document.getElementById('instantNotice').classList.toggle('d-none', !isInstant);
-      document.getElementById('requestNotice').classList.toggle('d-none',  isInstant);
-
-      // Style submit button
-      const submitBtn = document.getElementById('submitBooking');
-      submitBtn.className = isInstant
-        ? 'btn btn-success'
-        : 'btn btn-warning';
-      document.getElementById('submitText').innerHTML = isInstant
-        ? '<i class="fas fa-bolt me-1"></i>Confirm Booking'
-        : '<i class="fas fa-paper-plane me-1"></i>Submit Request';
-
-      // Clear previous state
-      clearModal();
-
-      wireAvailabilityOnce();
-      refreshAvailability();
+    // Fallback path: if Bootstrap JS fails to load, wire click handlers ourselves
+    document.querySelectorAll('.btn-book').forEach(function (btn) {
+      btn.addEventListener('click', function (e) {
+        if (hasBootstrapModal()) return; // Bootstrap will handle data-bs-toggle
+        e.preventDefault();
+        fillBookingModalFromButton(btn);
+        showModalById('bookingModal');
+      });
     });
   }
 
@@ -253,8 +340,7 @@
           // Close modal after short delay
           showModalAlert('success', data.message);
           setTimeout(function () {
-            const modal = bootstrap.Modal.getInstance(document.getElementById('bookingModal'));
-            if (modal) modal.hide();
+            hideModalById('bookingModal');
             // Reload page to update table & stats
             window.location.href = BASE_URL + '/student/dashboard.php#my-requests';
           }, 1400);
@@ -278,7 +364,7 @@
     btn.addEventListener('click', function () {
       cancelBookingId = btn.dataset.id;
       document.getElementById('cancelFacilityName').textContent = btn.dataset.name;
-      new bootstrap.Modal(document.getElementById('cancelModal')).show();
+      showModalById('cancelModal');
     });
   });
 
