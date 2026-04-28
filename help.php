@@ -60,7 +60,9 @@ require_once __DIR__ . '/includes/navbar.php';
         <div class="p-3 soft-panel">
           <div class="fw-bold mb-2">Library Contact</div>
           <div class="small text-muted">Email</div>
-          <div class="help-mini mb-1"><a href="mailto:morelos.library@urios.edu.ph">morelos.library@urios.edu.ph</a></div>
+          <?php if (($_SESSION['role'] ?? '') === 'faculty'): ?>
+            <div class="help-mini mb-1"><a href="mailto:morelos.library@urios.edu.ph">morelos.library@urios.edu.ph</a></div>
+          <?php endif; ?>
           <div class="help-mini mb-2"><a href="mailto:library.helpdesk@urios.edu.ph">library.helpdesk@urios.edu.ph</a></div>
           <div class="small text-muted">Office Hours</div>
           <div class="help-mini">Mon–Sat · 7:00 AM – 5:00 PM</div>

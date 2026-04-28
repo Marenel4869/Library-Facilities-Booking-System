@@ -1,0 +1,6 @@
+# Runtime logs
+/logs/*.log
+/logs/*.log.*
+
+# Keep access control files
+!/logs/.htaccess

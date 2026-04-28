@@ -17,12 +17,16 @@ define('LOGIN_MAX_ATTEMPTS',    5);  // lock after 5 failures
 define('LOGIN_LOCKOUT_SEC',   900);  // 15-minute lockout
 
 if (session_status() === PHP_SESSION_NONE) {
-    // Harden session cookie
+    // Automatically mark cookies secure when served over HTTPS.
+    $isHttps = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off')
+        || (!empty($_SERVER['SERVER_PORT']) && (int)$_SERVER['SERVER_PORT'] === 443)
+        || (!empty($_SERVER['HTTP_X_FORWARDED_PROTO']) && $_SERVER['HTTP_X_FORWARDED_PROTO'] === 'https');
+
     session_set_cookie_params([
-        'lifetime' => 0,           // expires on browser close
+        'lifetime' => 0, // expires on browser close
         'path'     => '/',
-        'secure'   => false,       // set true when using HTTPS
-        'httponly' => true,        // block JS access to cookie
+        'secure'   => $isHttps,
+        'httponly' => true, // block JS access to cookie
         'samesite' => 'Lax',
     ]);
     session_start();
@@ -48,9 +52,21 @@ unset($_logsDir);
 set_exception_handler(function (Throwable $e) {
     $logDir = __DIR__ . '/../logs/';
     if (!is_dir($logDir)) @mkdir($logDir, 0755, true);
+
+    $logFile = $logDir . 'php_errors.log';
+    $maxBytes = 1024 * 1024; // 1 MB
+    if (is_file($logFile)) {
+        $size = @filesize($logFile);
+        if ($size !== false && $size > $maxBytes) {
+            $archived = $logDir . 'php_errors_' . date('Ymd_His') . '.log';
+            @rename($logFile, $archived);
+        }
+    }
+
     $msg = date('[Y-m-d H:i:s]') . ' ' . get_class($e) . ': ' . $e->getMessage()
          . ' in ' . $e->getFile() . ':' . $e->getLine() . "\n";
-    @file_put_contents($logDir . 'php_errors.log', $msg, FILE_APPEND);
+    @file_put_contents($logFile, $msg, FILE_APPEND | LOCK_EX);
+
     http_response_code(500);
     // Show friendly error in production; for dev you can swap this for a full dump
     die('<p style="font-family:sans-serif;padding:20px;color:#c00">An unexpected error occurred. Please try again later.</p>');

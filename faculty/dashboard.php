@@ -124,10 +124,10 @@ require_once __DIR__ . '/../includes/navbar.php';
         </div>
         <h6 class="fw-bold mb-2">Booking Rules / Tips</h6>
         <ul class="info-list">
-          <li>Bring your school ID when using the facility.</li>
-          <li>Arrive on the designated time selected to avoid losing your slot.</li>
-          <li>Bookings will be removed if users didn't arrived within grace period (5 minutes).</li>
-          <li>Cancel 15 minutes early if you won’t proceed.</li>
+          <li>Bring your Faculty ID when using the facility.</li>
+          <li>Arrive at the designated time to avoid losing your slot.</li>
+          <li>Bookings will be removed if users do not arrive within the 5-minute grace period.</li>
+          <li>Cancel at least 15 minutes in advance if you will not proceed.</li>
           <li>Follow facility-specific slots and capacity limits.</li>
         </ul>
       </div>
@@ -138,24 +138,16 @@ require_once __DIR__ . '/../includes/navbar.php';
     <div class="card facility-card border-0 shadow-sm overflow-hidden h-100">
       <div class="card-body">
         <div class="d-flex justify-content-between align-items-start mb-2">
-          <div class="facility-icon instant"><i class="fas fa-bullhorn"></i></div>
-          <a class="small text-primary text-decoration-none" href="<?= BASE_URL ?>/announcements.php">View all</a>
+          <div class="facility-icon info"><i class="fas fa-bullhorn"></i></div>
+          <span class="badge bg-primary-subtle text-primary border border-primary-subtle">Announcements</span>
         </div>
-        <h6 class="fw-bold mb-2">Announcements</h6>
-        <?php if (empty($dashAnns)): ?>
-          <div class="text-muted small">No announcements right now.</div>
+
+        <?php if (!empty($dashAnns)): $a = $dashAnns[0]; ?>
+          <h6 class="fw-bold mb-1"><?= e($a['title']) ?></h6>
+          <div class="text-muted small mb-2"><?= e(truncateText($a['body'], 100)) ?></div>
+          <a href="<?= BASE_URL ?>/announcements.php" class="small text-primary">View all announcements</a>
         <?php else: ?>
-          <div class="d-flex flex-column gap-2">
-            <?php foreach ($dashAnns as $a): ?>
-              <div class="announcement-item">
-                <div class="d-flex justify-content-between gap-2">
-                  <div class="title"><?= e($a['title']) ?></div>
-                  <div class="meta"><?= date('M j', strtotime($a['created_at'])) ?></div>
-                </div>
-                <div class="body"><?= e(truncateText($a['body'], 95)) ?></div>
-              </div>
-            <?php endforeach; ?>
-          </div>
+          <div class="text-muted small">No announcements right now.</div>
         <?php endif; ?>
       </div>
     </div>
@@ -229,13 +221,14 @@ require_once __DIR__ . '/../includes/navbar.php';
         <p class="text-muted small mb-2"><?= e($f['location']) ?></p>
         <div class="facility-meta">
           <span><i class="fas fa-users text-success me-1"></i>Max <?= $f['capacity'] ?> people</span>
-          <span><i class="fas fa-clock text-success me-1"></i>8:00 AM – 6:00 PM</span>
+          <span><i class="fas fa-clock text-success me-1"></i>7:30 AM – 6:00 PM</span>
         </div>
         <p class="mt-2 mb-0 small text-success fw-semibold"><i class="fas fa-check-circle me-1"></i>No approval needed</p>
       </div>
       <div class="card-footer bg-transparent border-0 pb-3 px-3">
-        <button class="btn btn-success w-100 btn-open-modal"
-          data-fac='<?= json_encode([
+        <button type="button" class="btn btn-success w-100 btn-open-modal"
+          data-is-eirc="<?= (stripos($f['name'], 'eirc') !== false || stripos($f['name'], 'irc') !== false || stripos($f['name'], 'museum') !== false) ? '1' : '0' ?>"
+          data-fac='<?= e(json_encode([
             "id"              => $f['id'],
             "name"            => $f['name'],
             "capacity"        => $f['capacity'],
@@ -245,7 +238,7 @@ require_once __DIR__ . '/../includes/navbar.php';
             "slots"           => null,
             "purposes"        => null,
             "group"           => "cl",
-          ]) ?>'>
+          ])) ?>'>
           <i class="fas fa-bolt me-1"></i>Book Now
         </button>
       </div>
@@ -310,8 +303,9 @@ require_once __DIR__ . '/../includes/navbar.php';
         <?php endif; ?>
       </div>
       <div class="card-footer bg-transparent border-0 pb-3 px-3">
-        <button class="btn btn-primary w-100 btn-open-modal"
-          data-fac='<?= json_encode([
+        <button type="button" class="btn btn-primary w-100 btn-open-modal"
+          data-is-eirc="<?= (stripos($f['name'], 'eirc') !== false || stripos($f['name'], 'irc') !== false || stripos($f['name'], 'museum') !== false) ? '1' : '0' ?>"
+          data-fac='<?= e(json_encode([
             "id"              => (int)$f['id'],
             "name"            => $f['name'],
             "capacity"        => (int)$f['capacity'],
@@ -321,7 +315,7 @@ require_once __DIR__ . '/../includes/navbar.php';
             "slots"           => $slots,
             "purposes"        => $purposes,
             "group"           => "morelos",
-          ]) ?>'>
+          ])) ?>'>
           <i class="fas fa-paper-plane me-1"></i>Request Booking
         </button>
       </div>
@@ -363,15 +357,15 @@ require_once __DIR__ . '/../includes/navbar.php';
         <p class="text-muted small mb-2"><?= e($f['location']) ?></p>
         <div class="facility-meta">
           <span><i class="fas fa-users text-warning me-1"></i>Max <?= $f['capacity'] ?> people</span>
-          <span><i class="fas fa-clock text-warning me-1"></i>8:00 AM – 6:00 PM</span>
+          <span><i class="fas fa-clock text-warning me-1"></i>7:30 AM – 6:00 PM</span>
         </div>
         <p class="mt-2 mb-0 small text-warning fw-semibold">
           <i class="fas fa-upload me-1"></i>Request letter required (PDF/Image)
         </p>
       </div>
       <div class="card-footer bg-transparent border-0 pb-3 px-3">
-        <button class="btn btn-warning w-100 btn-open-modal"
-          data-fac='<?= json_encode([
+        <button type="button" class="btn btn-warning w-100 btn-open-modal"
+          data-fac='<?= e(json_encode([
             "id"              => (int)$f['id'],
             "name"            => $f['name'],
             "capacity"        => (int)$f['capacity'],
@@ -381,7 +375,7 @@ require_once __DIR__ . '/../includes/navbar.php';
             "slots"           => null,
             "purposes"        => null,
             "group"           => "library",
-          ]) ?>'>
+          ])) ?>'>
           <i class="fas fa-paper-plane me-1"></i>Request Booking
         </button>
       </div>
@@ -541,62 +535,47 @@ require_once __DIR__ . '/../includes/navbar.php';
                    required>
           </div>
 
-          <!-- Time Slots (for Morelos) — now uses select dropdowns like CL -->
+          <!-- Time Slot (default for most facilities) -->
           <div class="mb-3" id="slotGroup" style="display:none">
-            <div class="row g-2">
-              <div class="col-6">
-                <label class="form-label fw-semibold small">Start Time <span class="text-danger">*</span></label>
-                <select name="start_time" id="slotStart" class="form-select">
-                  <?php
-                    $s = strtotime('07:00'); $e = strtotime('17:00');
-                    for ($t = $s; $t <= $e; $t += 1800)
-                      echo '<option value="'.date('H:i',$t).'"'.($t===$s?' selected':'').'>'.date('g:i A',$t).'</option>';
-                  ?>
-                </select>
-                <div class="form-text small">From 7:00 AM</div>
-              </div>
-              <div class="col-6">
-                <label class="form-label fw-semibold small">End Time <span class="text-danger">*</span></label>
-                <select name="end_time" id="slotEnd" class="form-select">
-                  <?php
-                    $s2 = strtotime('07:30'); $e2 = strtotime('17:00');
-                    for ($t = $s2; $t <= $e2; $t += 1800)
-                      echo '<option value="'.date('H:i',$t).'"'.($t===strtotime('08:00')?' selected':'').'>'.date('g:i A',$t).'</option>';
-                  ?>
-                </select>
-                <div class="form-text small">Until 5:00 PM</div>
-              </div>
-            </div>
-            <input type="hidden" id="hiddenStart">
-            <input type="hidden" id="hiddenEnd">
+            <label class="form-label fw-semibold small">Time Slot <span class="text-danger">*</span></label>
+            <select id="slotSelect" class="form-select"></select>
+            <div class="form-text text-muted small">Unavailable slots are grayed out and labeled “Booked”.</div>
           </div>
 
-          <!-- Custom time (for CL) -->
-          <div id="customTimeGroup">
+          <!-- Flexible time (Faculty / Reading Area) -->
+          <div id="customTimeGroup" style="display:none">
             <div class="row g-2 mb-3">
               <div class="col-6">
                 <label class="form-label fw-semibold small">Start Time <span class="text-danger">*</span></label>
                 <select name="start_time_custom" id="startTimeCustom" class="form-select">
                   <?php
-                    $s = strtotime('08:00'); $e = strtotime('18:00');
-                    for ($t = $s; $t <= $e; $t += 1800)
-                      echo '<option value="'.date('H:i',$t).'"'.($t===$s?' selected':'').'>'.date('g:i A',$t).'</option>';
+                    $startTimes = [];
+                    for ($t = strtotime('08:00'); $t <= strtotime('17:00'); $t += 3600) {
+                      $startTimes[] = date('H:i', $t);
+                    }
+                    foreach ($startTimes as $tm) {
+                      echo '<option value="'.$tm.'">'.date('g:i A', strtotime($tm)).'</option>';
+                    }
                   ?>
                 </select>
-                <div class="form-text small">From 8:00 AM</div>
               </div>
               <div class="col-6">
                 <label class="form-label fw-semibold small">End Time <span class="text-danger">*</span></label>
                 <select name="end_time_custom" id="endTimeCustom" class="form-select">
                   <?php
-                    $s2 = strtotime('08:30'); $e2 = strtotime('18:00');
-                    for ($t = $s2; $t <= $e2; $t += 1800)
-                      echo '<option value="'.date('H:i',$t).'"'.($t===strtotime('09:00')?' selected':'').'>'.date('g:i A',$t).'</option>';
+                    $endTimes = [];
+                    for ($t = strtotime('08:30'); $t <= strtotime('17:30'); $t += 3600) {
+                      $endTimes[] = date('H:i', $t);
+                    }
+                    $endTimes[] = '18:00';
+                    foreach ($endTimes as $tm) {
+                      echo '<option value="'.$tm.'">'.date('g:i A', strtotime($tm)).'</option>';
+                    }
                   ?>
                 </select>
-                <div class="form-text small">Until 6:00 PM</div>
               </div>
             </div>
+
           </div>
 
           <!-- Attendees -->
@@ -609,15 +588,26 @@ require_once __DIR__ . '/../includes/navbar.php';
                    class="form-control" min="1" value="1" required>
           </div>
 
-          <!-- Program -->
-          <div class="mb-3">
-            <label class="form-label fw-semibold small">Program <span class="text-danger">*</span></label>
-            <select name="program" id="programSelect" class="form-select" required>
-              <option value="">-- Select Program --</option>
-              <?php foreach (programOptions() as $p): ?>
-                <option value="<?= e($p) ?>"><?= e($p) ?></option>
-              <?php endforeach; ?>
-            </select>
+          <!-- Program + Level (Faculty Area / Reading Area) -->
+          <div class="row g-2 mb-3" id="programLevelRow">
+            <div class="col-12 col-md-12" id="programCol">
+              <label class="form-label fw-semibold small">Program <span class="text-danger">*</span></label>
+              <select name="program" id="programSelect" class="form-select" required>
+                <option value="">-- Select Program --</option>
+                <?php foreach (programOptions() as $p): ?>
+                  <option value="<?= e($p) ?>"><?= e($p) ?></option>
+                <?php endforeach; ?>
+              </select>
+            </div>
+            <div class="col-12 col-md-6" id="levelCol" style="display:none">
+              <label class="form-label fw-semibold small">Level <span class="text-danger">*</span></label>
+              <select name="level" id="levelSelect" class="form-select">
+                <option value="">-- Select Level --</option>
+                <option value="GS">Grade School (GS)</option>
+                <option value="JHS">Junior High School (JHS)</option>
+                <option value="SHS">Senior High School (SHS)</option>
+              </select>
+            </div>
           </div>
 
           <!-- Purpose dropdown (Morelos) -->

@@ -56,7 +56,7 @@ $pageTitle = 'Notifications';
 require_once __DIR__ . '/includes/header.php';
 require_once __DIR__ . '/includes/navbar.php';
 ?>
-<main><div class="container py-3" style="max-width:800px">
+<main><div class="container py-3" style="max-width:1100px;margin:0 auto;">
 
 <?= showFlash() ?>
 
@@ -98,25 +98,24 @@ require_once __DIR__ . '/includes/navbar.php';
       $ic  = $typeIcon[$n['type']]  ?? 'circle';
       $col = $typeColor[$n['type']] ?? 'secondary';
     ?>
-    <div class="d-flex align-items-start gap-3 px-4 py-3 border-bottom notif-row <?= $n['is_read'] ? 'bg-white' : 'bg-primary-subtle' ?>"
-         id="notif-<?= $n['id'] ?>">
-      <div class="mt-1">
-        <i class="fas fa-<?= $ic ?> fa-lg text-<?= $col ?>"></i>
+    <div class="notif-card d-flex align-items-start gap-3 px-4 py-3 <?= $n['is_read'] ? 'read' : 'unread' ?>" id="notif-<?= $n['id'] ?>">
+      <div class="notif-icon notif-<?= htmlspecialchars($n['type']) ?>">
+        <i class="fas fa-<?= $ic ?>"></i>
       </div>
-      <div class="flex-grow-1">
-        <p class="mb-1 <?= $n['is_read'] ? 'text-muted' : 'fw-semibold' ?>" style="line-height:1.4"><?= e($n['message']) ?></p>
-        <small class="text-muted"><?= date('F j, Y \\a\\t g:i A', strtotime($n['created_at'])) ?></small>
-        <?php if ($n['link']): ?>
-          <a href="<?= BASE_URL . '/notifications.php?open=' . (int)$n['id'] ?>" class="ms-2 small text-primary">View →</a>
-        <?php endif; ?>
+      <div class="flex-grow-1 notif-body">
+        <div class="notif-message <?= $n['is_read'] ? 'text-muted' : 'fw-semibold' ?>"><?= e($n['message']) ?></div>
+        <div class="notif-meta">
+          <small class="text-muted"><?= date('F j, Y \\a\\t g:i A', strtotime($n['created_at'])) ?></small>
+          <?php if ($n['link']): ?>
+            <a href="<?= BASE_URL . '/notifications.php?open=' . (int)$n['id'] ?>" class="notif-link small ms-2">View →</a>
+          <?php endif; ?>
+        </div>
       </div>
-      <div class="d-flex flex-column gap-1 ms-2 flex-shrink-0">
+      <div class="notif-actions ms-3">
         <?php if (!$n['is_read']): ?>
-          <button class="btn btn-sm btn-link p-0 text-muted" title="Mark read"
-                  onclick="markOne(<?= $n['id'] ?>)"><i class="fas fa-check"></i></button>
+          <button class="notif-action-btn" onclick="markOne(<?= $n['id'] ?>)" title="Mark read" aria-label="Mark read"><i class="fas fa-check"></i></button>
         <?php endif; ?>
-        <button class="btn btn-sm btn-link p-0 text-danger" title="Delete"
-                onclick="deleteOne(<?= $n['id'] ?>)"><i class="fas fa-times"></i></button>
+        <button class="notif-action-btn delete" onclick="deleteOne(<?= $n['id'] ?>)" title="Delete" aria-label="Delete"><i class="fas fa-times"></i></button>
       </div>
     </div>
     <?php endforeach; ?>
@@ -162,4 +161,7 @@ function deleteOne(id) {
 }
 </script>
 
+</div></div>
+
 <?php require_once __DIR__ . '/includes/footer.php'; ?>
+

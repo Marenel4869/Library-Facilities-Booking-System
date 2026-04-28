@@ -5,6 +5,7 @@ requireLogin('faculty');
 $uid = $_SESSION['user_id'];
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['cancel'])) {
+    verifyCsrf();
     $bid = (int)$_POST['booking_id'];
     $pdo->prepare('UPDATE bookings SET status = "cancelled" WHERE id = ? AND user_id = ? AND status = "pending"')
         ->execute([$bid, $uid]);
@@ -64,6 +65,7 @@ require_once __DIR__ . '/../includes/navbar.php';
               <a href="<?= BASE_URL ?>/faculty/view_booking.php?id=<?= $b['id'] ?>" class="btn btn-sm btn-outline-primary">View</a>
               <?php if ($b['status'] === 'pending'): ?>
               <form method="POST" onsubmit="return confirm('Cancel this booking?')">
+                <?= csrfField() ?>
                 <input type="hidden" name="booking_id" value="<?= $b['id'] ?>">
                 <button name="cancel" class="btn btn-sm btn-outline-danger">Cancel</button>
               </form>

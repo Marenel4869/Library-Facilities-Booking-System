@@ -14,6 +14,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $purpose   = trim($_POST['purpose']          ?? '');
     $attendees = (int)($_POST['attendees_count'] ?? 1);
     $program   = trim($_POST['program']          ?? '');
+    $level     = trim($_POST['level']            ?? '');
 
     if (!$fid)       $errors[] = 'Select a facility.';
     if (!$date)      $errors[] = 'Date is required.';
@@ -40,6 +41,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if ($facility && $attendees > $facility['capacity'])
         $errors[] = 'Attendees exceed facility capacity (' . $facility['capacity'] . ').';
 
+    if ($facility) {
+        $fname = strtolower((string)($facility['name'] ?? ''));
+        $needsLevel = (strpos($fname, 'faculty area') !== false) || (strpos($fname, 'reading area') !== false);
+        if ($needsLevel) {
+            $allowedLevels = ['GS','JHS','SHS'];
+            if (!$level) $errors[] = 'Level is required for this facility.';
+            if ($level && !in_array($level, $allowedLevels, true)) $errors[] = 'Invalid level selected.';
+        } else {
+            $level = null;
+        }
+    }
+
     if (empty($errors) && !slotAvailable($pdo, $fid, $date, $startTime, $endTime))
         $errors[] = 'That time slot is already booked. Pick another time.';
 
@@ -50,8 +63,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 
     if (empty($errors)) {
-        $pdo->prepare('INSERT INTO bookings (user_id,facility_id,booking_date,start_time,end_time,purpose,attendees_count,program,letter_path,status) VALUES (?,?,?,?,?,?,?,?,?,?)')
-            ->execute([$uid, $fid, $date, $startTime, $endTime, $purpose, $attendees, $program, $letterFile, 'pending']);
+        $pdo->prepare('INSERT INTO bookings (user_id,facility_id,booking_date,start_time,end_time,purpose,attendees_count,program,level,letter_path,status) VALUES (?,?,?,?,?,?,?,?,?,?,?)')
+            ->execute([$uid, $fid, $date, $startTime, $endTime, $purpose, $attendees, $program, $level, $letterFile, 'pending']);
         $bid = $pdo->lastInsertId();
         flash('success', 'Booking submitted! Awaiting admin approval.');
         header('Location: ' . BASE_URL . '/faculty/view_booking.php?id=' . $bid);
@@ -135,7 +148,9 @@ require_once __DIR__ . '/../includes/navbar.php';
                      value="<?= htmlspecialchars($_POST['attendees_count'] ?? '1') ?>" required>
               <div class="form-text">Max: <?= $selected['capacity'] ?></div>
             </div>
-            <div class="col-md-6">
+            <?php $needsLevel = $selected && (stripos($selected['name'], 'faculty area') !== false || stripos($selected['name'], 'reading area') !== false); ?>
+
+            <div class="col-md-<?= $needsLevel ? '6' : '12' ?>">
               <label class="form-label fw-semibold">Program *</label>
               <select name="program" class="form-select" required>
                 <option value="">-- Select Program --</option>
@@ -144,6 +159,18 @@ require_once __DIR__ . '/../includes/navbar.php';
                 <?php endforeach; ?>
               </select>
             </div>
+
+            <?php if ($needsLevel): ?>
+            <div class="col-md-6">
+              <label class="form-label fw-semibold">Level *</label>
+              <select name="level" class="form-select" required>
+                <option value="">-- Select Level --</option>
+                <option value="GS"  <?= (($_POST['level'] ?? '') === 'GS')  ? 'selected' : '' ?>>Grade School (GS)</option>
+                <option value="JHS" <?= (($_POST['level'] ?? '') === 'JHS') ? 'selected' : '' ?>>Junior High School (JHS)</option>
+                <option value="SHS" <?= (($_POST['level'] ?? '') === 'SHS') ? 'selected' : '' ?>>Senior High School (SHS)</option>
+              </select>
+            </div>
+            <?php endif; ?>
             <div class="col-12">
               <label class="form-label fw-semibold">Purpose *</label>
               <textarea name="purpose" class="form-control" rows="3" required><?= e($_POST['purpose'] ?? '') ?></textarea>

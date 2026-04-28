@@ -16,6 +16,7 @@ if (!$booking) {
 }
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['cancel'])) {
+    verifyCsrf();
     if ($booking['status'] === 'pending') {
         $pdo->prepare('UPDATE bookings SET status = "cancelled" WHERE id = ? AND user_id = ?')->execute([$id, $uid]);
         flash('success', 'Booking cancelled.');
@@ -53,6 +54,8 @@ require_once __DIR__ . '/../includes/navbar.php';
           <tr><th class="ps-3">Date</th><td><?= date('l, F j, Y', strtotime($booking['booking_date'])) ?></td></tr>
           <tr><th class="ps-3">Time</th><td><?= date('g:i A', strtotime($booking['start_time'])) ?> – <?= date('g:i A', strtotime($booking['end_time'])) ?></td></tr>
           <tr><th class="ps-3">Attendees</th><td><?= $booking['attendees_count'] ?> / <?= $booking['capacity'] ?></td></tr>
+          <tr><th class="ps-3">Program</th><td><?= e($booking['program'] ?? '—') ?></td></tr>
+          <tr><th class="ps-3">Level</th><td><?= e($booking['level'] ?? '—') ?></td></tr>
           <tr><th class="ps-3">Purpose</th><td><?= nl2br(e($booking['purpose'])) ?></td></tr>
           <?php if (!empty($booking['letter_path'])): ?>
           <tr><th class="ps-3">Letter</th><td><a href="<?= UPLOAD_URL . e($booking['letter_path']) ?>" target="_blank" class="btn btn-sm btn-outline-primary">Download</a></td></tr>
@@ -66,6 +69,7 @@ require_once __DIR__ . '/../includes/navbar.php';
       <?php if ($booking['status'] === 'pending'): ?>
       <div class="card-footer">
         <form method="POST" onsubmit="return confirm('Cancel this booking?')">
+          <?= csrfField() ?>
           <button name="cancel" class="btn btn-danger btn-sm">Cancel Booking</button>
         </form>
       </div>

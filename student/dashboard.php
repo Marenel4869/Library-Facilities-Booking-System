@@ -147,14 +147,14 @@ require_once __DIR__ . '/../includes/navbar.php';
         <p class="text-muted small mb-2"><?= e($f['location']) ?></p>
         <div class="facility-meta">
           <span><i class="fas fa-users text-primary me-1"></i>Max <?= $f['capacity'] ?> people</span>
-          <span><i class="fas fa-clock text-primary me-1"></i>8:00 AM – 6:00 PM</span>
+          <span><i class="fas fa-clock text-primary me-1"></i>7:30 AM – 6:00 PM</span>
         </div>
         <div class="mt-1 mb-3">
           <small class="text-success fw-semibold"><i class="fas fa-check-circle me-1"></i>No approval required</small>
         </div>
       </div>
       <div class="card-footer bg-transparent border-0 pt-0 pb-3 px-3">
-        <button class="btn btn-success w-100 btn-book"
+        <button type="button" class="btn btn-success w-100 btn-book"
           data-facility-id="<?= $f['id'] ?>"
           data-facility-name="<?= e($f['name']) ?>"
           data-capacity="<?= $f['capacity'] ?>"
@@ -202,19 +202,20 @@ require_once __DIR__ . '/../includes/navbar.php';
         <p class="text-muted small mb-2"><?= e($f['location']) ?></p>
         <div class="facility-meta">
           <span><i class="fas fa-users text-warning me-1"></i>Max <?= $f['capacity'] ?> people</span>
-          <span><i class="fas fa-clock text-warning me-1"></i>8:00 AM – 6:00 PM</span>
+          <span><i class="fas fa-clock text-warning me-1"></i>7:30 AM – 6:00 PM</span>
         </div>
         <div class="mt-1 mb-3">
           <small class="text-warning fw-semibold"><i class="fas fa-upload me-1"></i>Request letter required (PDF/Image)</small>
         </div>
       </div>
       <div class="card-footer bg-transparent border-0 pt-0 pb-3 px-3">
-        <button class="btn btn-warning w-100 btn-book"
+        <button type="button" class="btn btn-warning w-100 btn-book"
           data-facility-id="<?= $f['id'] ?>"
           data-facility-name="<?= e($f['name']) ?>"
           data-capacity="<?= $f['capacity'] ?>"
           data-instant="0"
           data-requires-letter="<?= $f['requires_letter'] ?>"
+          data-is-eirc="<?= (stripos($f['name'], 'eirc') !== false || stripos($f['name'], 'irc') !== false || stripos($f['name'], 'museum') !== false) ? '1' : '0' ?>"
           data-bs-toggle="modal"
           data-bs-target="#bookingModal">
           <i class="fas fa-paper-plane me-1"></i>Request Booking
@@ -228,6 +229,8 @@ require_once __DIR__ . '/../includes/navbar.php';
   </div><!-- /col-lg-8 -->
 
   <div class="col-lg-4">
+
+    <div class="side-stack">
 
     <!-- Schedule card styled like Facilities UI -->
     <div class="card facility-card border-0 shadow-sm overflow-hidden schedule-card mb-3">
@@ -275,36 +278,27 @@ require_once __DIR__ . '/../includes/navbar.php';
         <h6 class="fw-bold mb-2">Booking Rules / Tips</h6>
         <ul class="info-list">
           <li>Bring your school ID when using the facility.</li>
-          <li>Arrive on the designated time selected to avoid losing your slot.</li>
-          <li>Bookings will be removed if users didn't arrived within grace period (5 minutes).</li>
-          <li>Cancel 15 minutes early if you won’t proceed.</li>
+          <li>Arrive at the designated time to avoid losing your slot.</li>
+          <li>Bookings will be removed if users do not arrive within the 5-minute grace period.</li>
+          <li>Cancel at least 15 minutes in advance if you will not proceed.</li>
           <li>Follow facility-specific slots and capacity limits.</li>
         </ul>
       </div>
     </div>
 
-    <!-- Announcements preview -->
+    <!-- Announcements preview (uniform with other cards) -->
     <div class="card facility-card border-0 shadow-sm overflow-hidden mb-3">
       <div class="card-body">
         <div class="d-flex justify-content-between align-items-start mb-2">
-          <div class="facility-icon instant"><i class="fas fa-bullhorn"></i></div>
-          <a class="small text-primary text-decoration-none" href="<?= BASE_URL ?>/announcements.php">View all</a>
+          <div class="facility-icon info"><i class="fas fa-bullhorn"></i></div>
+          <span class="badge bg-primary-subtle text-primary border border-primary-subtle">Announcements</span>
         </div>
-        <h6 class="fw-bold mb-2">Announcements</h6>
-        <?php if (empty($dashAnns)): ?>
-          <div class="text-muted small">No announcements right now.</div>
+        <?php if (!empty($dashAnns)): $a = $dashAnns[0]; ?>
+          <h6 class="fw-bold mb-1"><?= e($a['title']) ?></h6>
+          <div class="text-muted small mb-2"><?= e(truncateText($a['body'], 100)) ?></div>
+          <a href="<?= BASE_URL ?>/announcements.php" class="small text-primary">View all announcements</a>
         <?php else: ?>
-          <div class="d-flex flex-column gap-2">
-            <?php foreach ($dashAnns as $a): ?>
-              <div class="announcement-item">
-                <div class="d-flex justify-content-between gap-2">
-                  <div class="title"><?= e($a['title']) ?></div>
-                  <div class="meta"><?= date('M j', strtotime($a['created_at'])) ?></div>
-                </div>
-                <div class="body"><?= e(truncateText($a['body'], 110)) ?></div>
-              </div>
-            <?php endforeach; ?>
-          </div>
+          <div class="text-muted small">No announcements right now.</div>
         <?php endif; ?>
       </div>
     </div>
@@ -326,6 +320,8 @@ require_once __DIR__ . '/../includes/navbar.php';
         </a>
       </div>
     </div>
+
+    </div><!-- /side-stack -->
 
   </div><!-- /col-lg-4 -->
 </div><!-- /row -->
@@ -489,30 +485,61 @@ require_once __DIR__ . '/../includes/navbar.php';
                      required>
             </div>
           </div>
-          <div class="row g-2 mb-3">
-            <div class="col-6">
-              <label class="form-label fw-semibold small">Start Time <span class="text-danger">*</span></label>
-              <select name="start_time" id="startTime" class="form-select" required>
-                <?php
-                  $s = strtotime('08:00'); $e = strtotime('18:00');
-                  for ($t = $s; $t <= $e; $t += 1800)
-                    echo '<option value="'.date('H:i',$t).'"'.($t===$s?' selected':'').'>'.date('g:i A',$t).'</option>';
-                ?>
-              </select>
-              <div class="form-text text-muted small">From 8:00 AM</div>
-            </div>
-            <div class="col-6">
-              <label class="form-label fw-semibold small">End Time <span class="text-danger">*</span></label>
-              <select name="end_time" id="endTime" class="form-select" required>
-                <?php
-                  $s2 = strtotime('08:30'); $e2 = strtotime('18:00');
-                  for ($t = $s2; $t <= $e2; $t += 1800)
-                    echo '<option value="'.date('H:i',$t).'"'.($t===strtotime('09:00')?' selected':'').'>'.date('g:i A',$t).'</option>';
-                ?>
-              </select>
-              <div class="form-text text-muted small">Until 6:00 PM</div>
-            </div>
+          <!-- Time Slot (default for most facilities) -->
+          <div class="mb-3" id="slotOnlyGroup">
+            <label class="form-label fw-semibold small">Time Slot <span class="text-danger">*</span></label>
+            <select id="slotSelect" class="form-select" required>
+              <option value="">-- Select a slot --</option>
+              <option value="07:30|09:00">7:30 AM – 9:00 AM</option>
+              <option value="09:00|10:30">9:00 AM – 10:30 AM</option>
+              <option value="10:30|12:00">10:30 AM – 12:00 PM</option>
+              <option value="12:00|13:30">12:00 PM – 1:30 PM</option>
+              <option value="13:30|15:00">1:30 PM – 3:00 PM</option>
+              <option value="15:00|16:30">3:00 PM – 4:30 PM</option>
+              <option value="16:30|18:00">4:30 PM – 6:00 PM</option>
+            </select>
+            <div class="form-text text-muted small">Unavailable slots are grayed out and labeled “Booked”.</div>
           </div>
+
+          <!-- Flexible time (Faculty / Reading Area) -->
+          <div class="mb-3 d-none" id="flexTimeGroup">
+            <div class="row g-2">
+              <div class="col-6">
+                <label class="form-label fw-semibold small">Start Time <span class="text-danger">*</span></label>
+                <select id="flexStart" class="form-select" required>
+                  <?php
+                    $startTimes = [];
+                    for ($t = strtotime('08:00'); $t <= strtotime('17:00'); $t += 3600) {
+                      $startTimes[] = date('H:i', $t);
+                    }
+                    foreach ($startTimes as $tm) {
+                      echo '<option value="'.$tm.'">'.date('g:i A', strtotime($tm)).'</option>';
+                    }
+                  ?>
+                </select>
+              </div>
+              <div class="col-6">
+                <label class="form-label fw-semibold small">End Time <span class="text-danger">*</span></label>
+                <select id="flexEnd" class="form-select" required>
+                  <?php
+                    $endTimes = [];
+                    for ($t = strtotime('08:30'); $t <= strtotime('17:30'); $t += 3600) {
+                      $endTimes[] = date('H:i', $t);
+                    }
+                    $endTimes[] = '18:00';
+                    foreach ($endTimes as $tm) {
+                      echo '<option value="'.$tm.'">'.date('g:i A', strtotime($tm)).'</option>';
+                    }
+                  ?>
+                </select>
+              </div>
+            </div>
+
+          </div>
+
+          <!-- Hidden values sent to the server -->
+          <input type="hidden" name="start_time" id="startTime">
+          <input type="hidden" name="end_time" id="endTime">
 
           <!-- Attendees -->
           <div class="mb-3">

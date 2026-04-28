@@ -122,6 +122,7 @@ require_once __DIR__ . '/../includes/navbar.php';
           <tr><th>Time</th><td><?= date('g:i A', strtotime($booking['start_time'])) ?> – <?= date('g:i A', strtotime($booking['end_time'])) ?></td></tr>
           <tr><th>Attendees</th><td><?= $booking['attendees_count'] ?> / <?= $booking['capacity'] ?></td></tr>
           <tr><th>Program</th><td><?= e($booking['program'] ?? '—') ?></td></tr>
+          <tr><th>Level</th><td><?= e($booking['level'] ?? '—') ?></td></tr>
           <tr><th>Purpose</th><td><?= nl2br(e($booking['purpose'] ?? '—')) ?></td></tr>
           <tr><th>Submitted</th><td class="text-muted small"><?= date('M j, Y g:i A', strtotime($booking['created_at'])) ?></td></tr>
           <?php if ($booking['reviewed_at']): ?>

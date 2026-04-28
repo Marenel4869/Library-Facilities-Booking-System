@@ -74,7 +74,6 @@ $_quickNav = array_slice($_quickNav, 0, 5);
         <div class="sidebar-logo-icon"><i class="fas fa-book-open" aria-hidden="true"></i></div>
         <div>
           <span class="sidebar-logo-name"><?= APP_SHORT ?></span>
-          <span class="sidebar-logo-sub">Booking System</span>
         </div>
       </a>
       <button class="sidebar-close-btn" id="sidebarClose" aria-label="Close sidebar">
@@ -117,18 +116,7 @@ $_quickNav = array_slice($_quickNav, 0, 5);
       </ul>
     </nav>
 
-    <!-- Bottom links -->
-    <div class="sidebar-footer-links">
-      <a href="<?= BASE_URL ?>/<?= $role ?>/profile.php"
-         class="sidebar-nav-link<?= $script === 'profile.php' ? ' active' : '' ?>">
-        <span class="nav-icon" aria-hidden="true"><i class="fas fa-user-circle"></i></span>
-        <span>Profile</span>
-      </a>
-      <a href="<?= BASE_URL ?>/auth/logout.php" class="sidebar-nav-link sidebar-logout">
-        <span class="nav-icon" aria-hidden="true"><i class="fas fa-sign-out-alt"></i></span>
-        <span>Logout</span>
-      </a>
-    </div>
+    <!-- Sidebar footer removed per user request -->
 
   </aside><!-- /sidebar -->
 
@@ -149,14 +137,21 @@ $_quickNav = array_slice($_quickNav, 0, 5);
           <span></span><span></span><span></span>
         </button>
 
-        <a class="topbar-brand" href="<?= BASE_URL ?>/<?= $role ?>/dashboard.php" aria-label="<?= APP_NAME ?> home">
+        <button id="sidebarCollapseToggle" class="topbar-icon-btn sidebar-toggle-btn d-none d-lg-inline-flex me-2" aria-label="Toggle sidebar" title="Toggle sidebar">
+          <i class="fas fa-columns" aria-hidden="true"></i>
+        </button>
+        <a class="topbar-brand d-flex align-items-center" href="<?= BASE_URL ?>/<?= $role ?>/dashboard.php" aria-label="<?= APP_NAME ?> home">
           <span class="brand-mark" aria-hidden="true"><i class="fas fa-book-open"></i></span>
-          <span class="brand-text">
+          <span class="brand-text ms-2">
             <span class="brand-name"><?= e($_topTitle) ?></span>
           </span>
         </a>
 
-        <?php if (!empty($_quickNav)): ?>
+
+
+
+
+        <?php if (!empty($_quickNav) && $role !== 'admin'): ?>
         <nav class="topbar-quicknav" aria-label="Quick links">
           <?php foreach ($_quickNav as $qi): ?>
             <a href="<?= $qi['href'] ?>">
@@ -167,18 +162,8 @@ $_quickNav = array_slice($_quickNav, 0, 5);
         </nav>
         <?php endif; ?>
 
-        <!-- Actions: notifications + user -->
+        <!-- Actions: notifications + user (right side) -->
         <div class="topbar-actions">
-
-          <a class="topbar-link-btn" href="<?= BASE_URL ?>/announcements.php" aria-label="Announcements">
-            <i class="fas fa-bullhorn" aria-hidden="true"></i>
-            <span class="d-none d-lg-inline">Announcements</span>
-          </a>
-          <a class="topbar-link-btn" href="<?= BASE_URL ?>/help.php" aria-label="Need Help">
-            <i class="fas fa-life-ring" aria-hidden="true"></i>
-            <span class="d-none d-lg-inline">Need Help</span>
-          </a>
-
           <?php if ($uid): ?>
           <!-- Notification Bell -->
           <div class="dropdown">
@@ -232,7 +217,6 @@ $_quickNav = array_slice($_quickNav, 0, 5);
               <?php endif; ?>
             </div>
           </div><!-- /notif dropdown -->
-          <?php endif; ?>
 
           <!-- User menu -->
           <div class="dropdown">
@@ -244,30 +228,36 @@ $_quickNav = array_slice($_quickNav, 0, 5);
               <span class="topbar-username"><?= e($name) ?></span>
               <i class="fas fa-chevron-down ms-1" style="font-size:.65rem;color:#94a3b8" aria-hidden="true"></i>
             </button>
-            <ul class="dropdown-menu dropdown-menu-end shadow-sm">
+            <ul class="dropdown-menu dropdown-menu-end shadow-sm py-2" aria-label="User menu">
               <li>
-                <a class="dropdown-item" href="<?= BASE_URL ?>/<?= $role ?>/profile.php">
-                  <i class="fas fa-user me-2 text-muted" aria-hidden="true"></i>Profile
+                <a class="dropdown-item d-flex align-items-center gap-3 py-2" href="<?= BASE_URL ?>/<?= $role ?>/profile.php">
+                  <span class="menu-icon"><i class="fas fa-user text-muted"></i></span>
+                  <div>
+                    <div class="fw-semibold">Profile</div>
+                    <div class="text-muted small">View and edit your profile</div>
+                  </div>
                 </a>
               </li>
               <li>
-                <a class="dropdown-item" href="<?= BASE_URL ?>/notifications.php">
-                  <i class="fas fa-bell me-2 text-muted" aria-hidden="true"></i>Notifications
-                  <?php if ($_notifCount > 0): ?>
-                    <span class="badge bg-danger ms-1"><?= $_notifCount ?></span>
-                  <?php endif; ?>
+                <a class="dropdown-item d-flex align-items-center gap-3 py-2" href="<?= BASE_URL ?>/notifications.php">
+                  <span class="menu-icon"><i class="fas fa-bell text-muted"></i></span>
+                  <div>
+                    <div class="fw-semibold">Notifications <?php if ($_notifCount > 0): ?><span class="badge bg-danger ms-2"><?= $_notifCount ?></span><?php endif; ?></div>
+                    <div class="text-muted small">Recent updates</div>
+                  </div>
                 </a>
               </li>
               <li><hr class="dropdown-divider my-1"></li>
               <li>
-                <a class="dropdown-item text-danger" href="<?= BASE_URL ?>/auth/logout.php">
-                  <i class="fas fa-sign-out-alt me-2" aria-hidden="true"></i>Logout
+                <a class="dropdown-item d-flex align-items-center gap-3 py-2 text-danger" href="<?= BASE_URL ?>/auth/logout.php">
+                  <span class="menu-icon menu-icon-danger"><i class="fas fa-sign-out-alt"></i></span>
+                  <div class="fw-semibold">Logout</div>
                 </a>
               </li>
             </ul>
           </div><!-- /user dropdown -->
-
-        </div><!-- /topbar-actions -->
+          <?php endif; ?>
+        </div>
       </div><!-- /topbar-main -->
 
       <div class="topbar-search">
@@ -322,12 +312,11 @@ $_quickNav = array_slice($_quickNav, 0, 5);
                   ];
                 ?>
                 <div class="spotlight spotlight-carousel">
-                  <div class="label">Facilities slideshow</div>
-                  <div id="facilityHeroCarousel" class="carousel slide" data-bs-ride="carousel" data-bs-interval="3500">
-                    <div class="carousel-inner">
+                  <div id="facilityHeroCarousel" class="carousel slide carousel-fade" data-bs-ride="carousel" data-bs-interval="3500" style="overflow:hidden;">
+                    <div class="carousel-inner" style="height:100%;">
                       <?php foreach ($facilitySlides as $i => $s): ?>
                         <div class="carousel-item <?= $i === 0 ? 'active' : '' ?>">
-                          <img src="<?= BASE_URL ?>/images/<?= rawurlencode($s['file']) ?>" class="d-block w-100" alt="<?= e($s['name']) ?>">
+                          <img src="<?= BASE_URL ?>/images/<?= rawurlencode($s['file']) ?>" class="d-block w-100 facility-slide" alt="<?= e($s['name']) ?>" loading="eager">
                           <div class="carousel-caption d-none d-md-block">
                             <h6 class="mb-0 fw-bold"><?= e($s['name']) ?></h6>
                           </div>
@@ -359,14 +348,62 @@ $_quickNav = array_slice($_quickNav, 0, 5);
 
 <script>
 document.addEventListener('DOMContentLoaded', function () {
-  var sidebar  = document.getElementById('sidebar');
-  var overlay  = document.getElementById('sidebarOverlay');
+  var sidebar   = document.getElementById('sidebar');
+  var overlay   = document.getElementById('sidebarOverlay');
   var hamburger = document.getElementById('hamburger');
-  var closeBtn = document.getElementById('sidebarClose');
+  var closeBtn  = document.getElementById('sidebarClose');
+
+  if (!sidebar || !overlay || !hamburger) return;
+
+  var collapseBtn = document.getElementById('sidebarCollapseToggle');
+
+  function syncAria() {
+    var desktop = window.innerWidth >= 992;
+    var hidden = document.body.classList.contains('sidebar-hidden');
+    if (collapseBtn) collapseBtn.setAttribute('aria-pressed', hidden ? 'true' : 'false');
+    if (sidebar) sidebar.setAttribute('aria-hidden', (desktop && hidden) ? 'true' : 'false');
+    try { sidebar.inert = (desktop && hidden); } catch (e) {}
+  }
+
+  function setSidebarHidden(isHidden) {
+    document.body.classList.toggle('sidebar-hidden', !!isHidden);
+    // Prevent conflicts with the legacy collapsed mode
+    document.body.classList.remove('sidebar-collapsed');
+
+    try {
+      localStorage.setItem('sidebarHidden', isHidden ? '1' : '0');
+      localStorage.removeItem('sidebarCollapsed');
+    } catch (e) {}
+
+    if (isHidden) closeSidebar();
+    syncAria();
+  }
+
+  // Respect stored preference (and migrate old 'collapsed' key)
+  try {
+    var hiddenPref = localStorage.getItem('sidebarHidden');
+    var shouldHide = hiddenPref === '1';
+    if (hiddenPref === null) {
+      // Back-compat: treat old collapsed preference as hidden (new behavior)
+      shouldHide = localStorage.getItem('sidebarCollapsed') === '1';
+    }
+    if (shouldHide) document.body.classList.add('sidebar-hidden');
+    localStorage.removeItem('sidebarCollapsed');
+  } catch (e) { /* ignore */ }
+
+  if (collapseBtn) {
+    collapseBtn.addEventListener('click', function () {
+      setSidebarHidden(!document.body.classList.contains('sidebar-hidden'));
+    });
+  }
+
+  syncAria();
+
 
   function openSidebar() {
     sidebar.classList.add('sidebar-open');
     overlay.classList.add('active');
+    overlay.setAttribute('aria-hidden', 'false');
     hamburger.setAttribute('aria-expanded', 'true');
     document.body.classList.add('sidebar-body-open');
   }
@@ -374,9 +411,13 @@ document.addEventListener('DOMContentLoaded', function () {
   function closeSidebar() {
     sidebar.classList.remove('sidebar-open');
     overlay.classList.remove('active');
+    overlay.setAttribute('aria-hidden', 'true');
     hamburger.setAttribute('aria-expanded', 'false');
     document.body.classList.remove('sidebar-body-open');
   }
+
+  // Safety: if anything left the overlay "active" (or the body locked), clear it on load.
+  closeSidebar();
 
   hamburger.addEventListener('click', function () {
     sidebar.classList.contains('sidebar-open') ? closeSidebar() : openSidebar();
@@ -388,6 +429,16 @@ document.addEventListener('DOMContentLoaded', function () {
   window.addEventListener('resize', function () {
     if (window.innerWidth >= 992) closeSidebar();
   });
+
+  // Auto-start admin carousel when available (init on window.load so bootstrap is loaded)
+  if (document.getElementById('facilityHeroCarousel')) {
+    window.addEventListener('load', function(){
+      var c = document.getElementById('facilityHeroCarousel');
+      if (c && window.bootstrap && bootstrap.Carousel) {
+        new bootstrap.Carousel(c, { interval: 3500, ride: 'carousel', pause: false });
+      }
+    });
+  }
 });
 
 function markNotifsRead() {

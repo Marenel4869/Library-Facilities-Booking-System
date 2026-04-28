@@ -60,15 +60,26 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 }
 
-// Get facilities
-$facilities = $pdo->query('SELECT * FROM facilities WHERE status = "active" ORDER BY name')->fetchAll();
+// Get facilities (exclude areas not available to students)
+$studentExclude = ['CL Room 3', 'Faculty Area', 'Reading Area'];
+$placeholders = implode(',', array_fill(0, count($studentExclude), '?'));
+$stmt = $pdo->prepare("SELECT * FROM facilities WHERE status = 'active' AND name NOT IN ($placeholders) ORDER BY name");
+$stmt->execute($studentExclude);
+$facilities = $stmt->fetchAll();
 
 // Pre-select if ?id= given
 $selected = null;
 if (!empty($_GET['id'])) {
     $s = $pdo->prepare('SELECT * FROM facilities WHERE id = ? AND status = "active"');
     $s->execute([(int)$_GET['id']]);
-    $selected = $s->fetch();
+    $sel = $s->fetch();
+    // Disallow excluded facilities for students
+    $studentExclude = ['CL Room 3', 'Faculty Area', 'Reading Area'];
+    if ($sel && !in_array($sel['name'], $studentExclude, true)) {
+        $selected = $sel;
+    } else {
+        $selected = null;
+    }
 }
 
 $pageTitle = 'Book a Facility';

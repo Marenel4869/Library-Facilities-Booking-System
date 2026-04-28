@@ -70,6 +70,7 @@ $endTime   = trim($_POST['end_time']             ?? '');
 $purpose   = trim($_POST['purpose']              ?? '');
 $attendees = (int)trim($_POST['attendees_count'] ?? 1);
 $program   = trim($_POST['program']              ?? '');
+$level     = trim($_POST['level']                ?? '');
 
 // Basic required checks
 if (!$fid || !$date || !$startTime || !$endTime || !$purpose || $attendees < 1 || !$program) {
@@ -122,38 +123,78 @@ if ($attendees > (int)$facility['capacity']) {
     exit;
 }
 
-// ── Time slot validation ──────────────────────────────────────────────────────
-if ($allowedSlots) {
-    // Must match one of the defined slots exactly
-    $validSlot = false;
-    foreach ($allowedSlots as $sl) {
-        $slStart = $sl['start'] . ':00';
-        $slEnd   = $sl['end']   . ':00';
-        // normalize to HH:MM:SS
-        if (strlen($startTime) === 5) $startTime .= ':00';
-        if (strlen($endTime)   === 5) $endTime   .= ':00';
-        if ($startTime === $slStart && $endTime === $slEnd) {
-            $validSlot = true;
-            break;
-        }
+// ── Time validation ───────────────────────────────────────────────────────────
+// Normalize to HH:MM:SS
+if (strlen($startTime) === 5) $startTime .= ':00';
+if (strlen($endTime)   === 5) $endTime   .= ':00';
+
+$name = strtolower((string)($facility['name'] ?? ''));
+
+// Require Level for Faculty Area / Reading Area
+$needsLevel = (strpos($name, 'faculty area') !== false) || (strpos($name, 'reading area') !== false);
+if ($needsLevel) {
+    $allowedLevels = ['GS', 'JHS', 'SHS'];
+    if (!$level) {
+        echo json_encode(['success'=>false,'message'=>'Level is required for this facility.']);
+        exit;
     }
-    if (!$validSlot) {
-        $slotLabels = array_map(fn($sl) => $sl['label'], $allowedSlots);
-        echo json_encode(['success'=>false,
-            'message'=>'Invalid time slot. Allowed: ' . implode(' | ', $slotLabels)]);
+    if (!in_array($level, $allowedLevels, true)) {
+        echo json_encode(['success'=>false,'message'=>'Invalid level selected.']);
         exit;
     }
 } else {
-    // CL: 08:00–18:00 range
-    if (strlen($startTime) === 5) $startTime .= ':00';
-    if (strlen($endTime)   === 5) $endTime   .= ':00';
-    if ($startTime < '08:00:00' || $endTime > '18:00:00') {
-        echo json_encode(['success'=>false,'message'=>'CL rooms are available 8:00 AM – 6:00 PM only.']);
-        exit;
+    $level = null;
+}
+
+// Flexible for faculty/reading-area and EIRC/Museum
+$isFlexible = (strpos($name, 'faculty') !== false) || (strpos($name, 'reading area') !== false) || (strpos($name, 'eirc') !== false) || (strpos($name, 'irc') !== false) || (strpos($name, 'museum') !== false);
+
+if ($isFlexible) {
+    $toMin = function ($t) {
+        $p = explode(':', (string)$t);
+        $h = (int)($p[0] ?? 0);
+        $m = (int)($p[1] ?? 0);
+        return $h * 60 + $m;
+    };
+    $sMin = $toMin($startTime);
+    $eMin = $toMin($endTime);
+
+    $isEircMuseum = (strpos($name, 'eirc') !== false) || (strpos($name, 'irc') !== false) || (strpos($name, 'museum') !== false);
+    if ($isEircMuseum) {
+        // EIRC/Museum: allow 08:00 - 18:00
+        if (!($sMin >= 8*60 && $eMin <= 18*60 && $sMin < $eMin)) {
+            echo json_encode(['success'=>false,'message'=>'Invalid time. Allowed: 8:00 AM–6:00 PM for this facility.']);
+            exit;
+        }
+    } else {
+        $morningOk = ($sMin >= 7*60)  && ($eMin <= 12*60);
+        $aftOk     = ($sMin >= 13*60) && ($eMin <= 17*60);
+
+        if (!(($morningOk || $aftOk) && ($sMin < $eMin))) {
+            echo json_encode(['success'=>false,'message'=>'Invalid time. Allowed: 7:00 AM–12:00 PM or 1:00 PM–5:00 PM (must be within the same time zone).']);
+            exit;
+        }
     }
-    $diffMin = (strtotime($endTime) - strtotime($startTime)) / 60;
-    if ($diffMin < 30) {
-        echo json_encode(['success'=>false,'message'=>'Minimum booking duration is 30 minutes.']);
+} else {
+    // Fixed slots for all other facilities (7:30 AM – 6:00 PM)
+    $allowedSlots = [
+        ['start' => '07:30:00', 'end' => '09:00:00',  'label' => '7:30am-9:00am'],
+        ['start' => '09:00:00', 'end' => '10:30:00', 'label' => '9:00am-10:30am'],
+        ['start' => '10:30:00', 'end' => '12:00:00', 'label' => '10:30am-12:00pm'],
+        ['start' => '12:00:00', 'end' => '13:30:00', 'label' => '12:00pm-1:30pm'],
+        ['start' => '13:30:00', 'end' => '15:00:00', 'label' => '1:30pm-3:00pm'],
+        ['start' => '15:00:00', 'end' => '16:30:00', 'label' => '3:00pm-4:30pm'],
+        ['start' => '16:30:00', 'end' => '18:00:00', 'label' => '4:30pm-6:00pm'],
+    ];
+
+    $validSlot = false;
+    foreach ($allowedSlots as $sl) {
+        if ($startTime === $sl['start'] && $endTime === $sl['end']) { $validSlot = true; break; }
+    }
+
+    if (!$validSlot) {
+        $slotLabels = array_map(fn($sl) => $sl['label'], $allowedSlots);
+        echo json_encode(['success'=>false, 'message'=>'Invalid time slot. Allowed: ' . implode(' | ', $slotLabels)]);
         exit;
     }
 }
@@ -209,9 +250,9 @@ try {
 
     $pdo->prepare(
         'INSERT INTO bookings
-         (user_id,facility_id,booking_date,start_time,end_time,purpose,attendees_count,program,letter_path,status)
-         VALUES (?,?,?,?,?,?,?,?,?,?)'
-    )->execute([$uid, $fid, $date, $startTime, $endTime, $purpose, $attendees, $program, $letterFile, $status]);
+         (user_id,facility_id,booking_date,start_time,end_time,purpose,attendees_count,program,level,letter_path,status)
+         VALUES (?,?,?,?,?,?,?,?,?,?,?)'
+    )->execute([$uid, $fid, $date, $startTime, $endTime, $purpose, $attendees, $program, $level, $letterFile, $status]);
 
     $bid = $pdo->lastInsertId();
     $pdo->commit();

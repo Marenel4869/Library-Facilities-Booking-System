@@ -44,6 +44,8 @@ try {
         capacity         INT          DEFAULT 0,
         open_time        TIME         DEFAULT '08:00:00',
         close_time       TIME         DEFAULT '18:00:00',
+        description      TEXT         DEFAULT NULL,
+        equipment        TEXT         DEFAULT NULL,
         status           ENUM('active','inactive') NOT NULL DEFAULT 'active',
         instant_booking  TINYINT(1)   NOT NULL DEFAULT 0,
         requires_letter  TINYINT(1)   NOT NULL DEFAULT 0,
@@ -51,9 +53,23 @@ try {
         allowed_slots    TEXT         DEFAULT NULL,
         purpose_options  TEXT         DEFAULT NULL,
         facility_group   VARCHAR(50)  DEFAULT NULL,
-        created_at       TIMESTAMP    DEFAULT CURRENT_TIMESTAMP
+        created_at       TIMESTAMP    DEFAULT CURRENT_TIMESTAMP,
+        updated_at       TIMESTAMP    DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
     ) ENGINE=InnoDB");
     $steps[] = ['ok', 'Table <strong>facilities</strong> ready.'];
+
+    // Silent column migrations (safe on re-run) for older installs
+    foreach ([
+        "ALTER TABLE facilities ADD COLUMN description TEXT DEFAULT NULL AFTER close_time",
+        "ALTER TABLE facilities ADD COLUMN equipment   TEXT DEFAULT NULL AFTER description",
+        "ALTER TABLE facilities ADD COLUMN updated_at  TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP AFTER created_at",
+
+        // Bookings enhancements
+        "ALTER TABLE bookings ADD COLUMN program VARCHAR(20) DEFAULT NULL AFTER attendees_count",
+        "ALTER TABLE bookings ADD COLUMN level   VARCHAR(10) DEFAULT NULL AFTER program",
+    ] as $sql) {
+        try { $pdo->exec($sql); } catch (PDOException $ignored) {}
+    }
 
     $pdo->exec("CREATE TABLE IF NOT EXISTS bookings (
         id               INT AUTO_INCREMENT PRIMARY KEY,
@@ -63,6 +79,8 @@ try {
         start_time       TIME         NOT NULL,
         end_time         TIME         NOT NULL,
         attendees_count  INT          DEFAULT 1,
+        program          VARCHAR(20)  DEFAULT NULL,
+        level            VARCHAR(10)  DEFAULT NULL,
         purpose          TEXT         DEFAULT NULL,
         status           ENUM('pending','approved','rejected','cancelled') NOT NULL DEFAULT 'pending',
         letter_path      VARCHAR(255) DEFAULT NULL,

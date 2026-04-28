@@ -17,6 +17,7 @@ if (!$booking) {
 
 // Cancel
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['cancel'])) {
+    verifyCsrf();
     if ($booking['status'] === 'pending') {
         $pdo->prepare('UPDATE bookings SET status = "cancelled" WHERE id = ? AND user_id = ?')->execute([$id, $uid]);
         flash('success', 'Booking cancelled.');

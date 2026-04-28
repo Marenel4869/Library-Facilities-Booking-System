@@ -1,3 +1,0 @@
-[2026-04-13 10:41:50] PDOException: SQLSTATE[42S22]: Column not found: 1054 Unknown column 'description' in 'field list' in C:\xampp\htdocs\Library-Facilities-Booking-System\admin\edit_facility.php:38
-[2026-04-22 06:10:19] PDOException: SQLSTATE[23000]: Integrity constraint violation: 1052 Column 'status' in where clause is ambiguous in C:\xampp\htdocs\Library-Facilities-Booking-System\admin\help_requests.php:26
-[2026-04-22 06:10:24] PDOException: SQLSTATE[23000]: Integrity constraint violation: 1052 Column 'status' in where clause is ambiguous in C:\xampp\htdocs\Library-Facilities-Booking-System\admin\help_requests.php:26

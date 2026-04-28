@@ -102,22 +102,12 @@ if ($dow === 4 || $dow === 5) {
     exit;
 }
 
-// Enforce 8:00 AM – 6:00 PM
-$openLimit  = '08:00:00';
-$closeLimit = '18:00:00';
-if ($startTime < $openLimit || $endTime > $closeLimit) {
-    echo json_encode(['success' => false, 'message' => 'Booking must be between 8:00 AM and 6:00 PM.']);
-    exit;
-}
+// Normalize to HH:MM:SS (UI posts HH:MM)
+if (strlen($startTime) === 5) $startTime .= ':00';
+if (strlen($endTime)   === 5) $endTime   .= ':00';
+
 if ($startTime >= $endTime) {
     echo json_encode(['success' => false, 'message' => 'End time must be after start time.']);
-    exit;
-}
-
-// Minimum 30-minute booking
-$diff = (strtotime($endTime) - strtotime($startTime)) / 60;
-if ($diff < 30) {
-    echo json_encode(['success' => false, 'message' => 'Booking must be at least 30 minutes.']);
     exit;
 }
 
@@ -129,6 +119,60 @@ $facility = $stmt->fetch();
 if (!$facility) {
     echo json_encode(['success' => false, 'message' => 'Facility not found or inactive.']);
     exit;
+}
+
+// Flexible facilities: Faculty / Reading Area (7:00–12:00, 1:00–5:00) and EIRC/Museum (8:00–18:00)
+$name = strtolower((string)($facility['name'] ?? ''));
+$isFlexible = (strpos($name, 'faculty') !== false) || (strpos($name, 'reading area') !== false) || (strpos($name, 'eirc') !== false) || (strpos($name, 'irc') !== false) || (strpos($name, 'museum') !== false);
+
+if ($isFlexible) {
+    $toMin = function ($t) {
+        $p = explode(':', (string)$t);
+        $h = (int)($p[0] ?? 0);
+        $m = (int)($p[1] ?? 0);
+        return $h * 60 + $m;
+    };
+    $sMin = $toMin($startTime);
+    $eMin = $toMin($endTime);
+
+    $isEircMuseum = (strpos($name, 'eirc') !== false) || (strpos($name, 'irc') !== false) || (strpos($name, 'museum') !== false);
+    if ($isEircMuseum) {
+        // EIRC/Museum: allow any start/end between 08:00 and 18:00 (start < end)
+        if (!($sMin >= 8*60 && $eMin <= 18*60 && $sMin < $eMin)) {
+            echo json_encode(['success' => false, 'message' => 'Invalid time. Allowed: 8:00 AM–6:00 PM for this facility.']);
+            exit;
+        }
+    } else {
+        // Faculty/Reading Area: must be within same window (7:00-12:00 OR 13:00-17:00)
+        $morningOk = ($sMin >= 7*60)  && ($eMin <= 12*60);
+        $aftOk     = ($sMin >= 13*60) && ($eMin <= 17*60);
+
+        if (!(($morningOk || $aftOk) && ($sMin < $eMin))) {
+            echo json_encode(['success' => false, 'message' => 'Invalid time. Allowed: 7:00 AM–12:00 PM or 1:00 PM–5:00 PM (must be within the same time zone).']);
+            exit;
+        }
+    }
+} else {
+    // Fixed slots for all other facilities (7:30 AM – 6:00 PM)
+    $allowedSlots = [
+        ['start' => '07:30:00', 'end' => '09:00:00'],
+        ['start' => '09:00:00', 'end' => '10:30:00'],
+        ['start' => '10:30:00', 'end' => '12:00:00'],
+        ['start' => '12:00:00', 'end' => '13:30:00'],
+        ['start' => '13:30:00', 'end' => '15:00:00'],
+        ['start' => '15:00:00', 'end' => '16:30:00'],
+        ['start' => '16:30:00', 'end' => '18:00:00'],
+    ];
+
+    $validSlot = false;
+    foreach ($allowedSlots as $sl) {
+        if ($startTime === $sl['start'] && $endTime === $sl['end']) { $validSlot = true; break; }
+    }
+
+    if (!$validSlot) {
+        echo json_encode(['success' => false, 'message' => 'Invalid time slot. Please select one of the available slots (7:30 AM – 6:00 PM).']);
+        exit;
+    }
 }
 
 if ($attendees > (int)$facility['capacity']) {

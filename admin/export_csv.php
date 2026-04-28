@@ -72,6 +72,7 @@ switch ($type) {
                 b.start_time AS "Start Time", b.end_time AS "End Time",
                 b.attendees_count AS "Attendees",
                 b.program AS "Program",
+                b.level AS "Level",
                 b.purpose AS "Purpose",
                 b.status AS "Status",
                 b.admin_remarks AS "Admin Remarks",
